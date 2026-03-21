@@ -7,15 +7,25 @@ export function renderRoute() {
   const app = document.getElementById("app");
   const { route } = getState();
 
-  if (route === "entry-goal") {
-    app.innerHTML = renderEntryGoal();
+  if (!app) {
+    return;
   }
 
-  if (route === "current-step") {
-    app.innerHTML = renderCurrentStep();
-  }
+  switch (route) {
+    case "entry-goal":
+      app.innerHTML = renderEntryGoal();
+      break;
 
-  if (route === "project-map") {
-    app.innerHTML = renderProjectMap();
+    case "current-step":
+      app.innerHTML = renderCurrentStep();
+      break;
+
+    case "project-map":
+      app.innerHTML = renderProjectMap();
+      break;
+
+    default:
+      app.innerHTML = renderEntryGoal();
+      break;
   }
 }

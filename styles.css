@@ -27,6 +27,7 @@ body {
 
 h1 {
   font-size: 24px;
+  line-height: 1.2;
 }
 
 button {
@@ -40,6 +41,7 @@ button {
 }
 
 input {
+  width: 100%;
   padding: 12px;
   border-radius: 8px;
   border: none;
@@ -50,4 +52,23 @@ input {
   background: #1e293b;
   padding: 16px;
   border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.task-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.task-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
