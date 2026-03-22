@@ -5,6 +5,7 @@ import {
   formatLabel,
   formatTaskStatus,
 } from "../utils/formatters.js";
+import { renderCodeBlock } from "../utils/code-block.js";
 
 export function renderCurrentStep() {
   const { project } = getState();
@@ -107,7 +108,11 @@ export function renderCurrentStep() {
 
       <div class="card">
         <p class="eyebrow">Recommended commit</p>
-        <pre class="code-block"><code>${escapeHtml(currentStep.commitMessage || "")}</code></pre>
+        ${renderCodeBlock({
+          label: "Commit message",
+          language: "text",
+          code: currentStep.commitMessage || "",
+        })}
       </div>
 
       <button data-nav="${ROUTES.PROJECT_MAP}">Open Project Map</button>
@@ -125,7 +130,11 @@ function renderTaskCard(task, index) {
       (item) => `
         <div class="terminal-block">
           <p><strong>${escapeHtml(item.label || "Command")}</strong></p>
-          <pre class="code-block"><code>${escapeHtml(item.command || "")}</code></pre>
+          ${renderCodeBlock({
+            label: item.label || "Command",
+            language: "bash",
+            code: item.command || "",
+          })}
         </div>
       `,
     )
@@ -172,7 +181,11 @@ function renderFileArtifact(file) {
   return `
     <div class="file-artifact">
       <p><strong>File:</strong> ${escapeHtml(file.path || "-")}</p>
-      <pre class="code-block"><code>${escapeHtml(file.code || "")}</code></pre>
+      ${renderCodeBlock({
+        label: file.path || file.language || "Code",
+        language: file.language || "",
+        code: file.code || "",
+      })}
     </div>
   `;
 }

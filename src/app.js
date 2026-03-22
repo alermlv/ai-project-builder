@@ -60,8 +60,13 @@ function handleStateChange(nextState) {
 }
 
 function setupGlobalEvents() {
-  document.addEventListener("click", (e) => {
+  document.addEventListener("click", async (e) => {
     const target = e.target;
+
+    if (target.dataset.copyCode) {
+      await handleCopyCode(target);
+      return;
+    }
 
     if (target.dataset.nav) {
       const route = target.dataset.nav;
@@ -125,6 +130,32 @@ function setupGlobalEvents() {
       }));
     }
   });
+}
+
+async function handleCopyCode(button) {
+  const encodedCode = button.dataset.copyCode || "";
+  const originalText = button.textContent || "Copy";
+
+  try {
+    const code = decodeURIComponent(encodedCode);
+    await navigator.clipboard.writeText(code);
+
+    button.textContent = "Copied";
+    button.disabled = true;
+
+    window.setTimeout(() => {
+      button.textContent = originalText;
+      button.disabled = false;
+    }, 1200);
+  } catch (error) {
+    console.error("Failed to copy code:", error);
+
+    button.textContent = "Failed";
+
+    window.setTimeout(() => {
+      button.textContent = originalText;
+    }, 1200);
+  }
 }
 
 init();
