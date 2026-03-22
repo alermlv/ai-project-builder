@@ -1,6 +1,7 @@
 import { commitState, getState } from "../state.js";
 import { ROUTES } from "../utils/routes.js";
 import { requestProjectRecommendation } from "../services/ai.js";
+import { buildFallbackRecommendation } from "../services/recommendation-fallback.js";
 
 const SCOPE_OPTIONS = [
   { value: "small", label: "Small project" },
@@ -105,6 +106,7 @@ document.addEventListener("click", async (e) => {
       ...state.ui,
       isLoading: true,
       errors: {},
+      notice: "",
     },
   }));
 
@@ -123,18 +125,27 @@ document.addEventListener("click", async (e) => {
         ...state.ui,
         isLoading: false,
         errors: {},
+        notice: "",
       },
     }));
   } catch (error) {
+    const fallbackRecommendation = buildFallbackRecommendation({
+      goal: entry.goal,
+      level: entry.level,
+      scope: entry.scope,
+    });
+
     commitState((state) => ({
       ...state,
+      recommendation: fallbackRecommendation,
+      route: ROUTES.RECOMMENDATION,
       ui: {
         ...state.ui,
         isLoading: false,
-        errors: {
-          ...state.ui.errors,
-          scope: error.message || "Failed to get recommendation from server.",
-        },
+        errors: {},
+        notice:
+          error.message ||
+          "Server recommendation failed, so fallback data was used.",
       },
     }));
   }

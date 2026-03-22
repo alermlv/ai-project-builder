@@ -34,6 +34,7 @@ function hydrateAppState() {
         isHydrated: true,
         isLoading: false,
         errors: {},
+        notice: "",
         ...(savedState.ui || {}),
       },
     });
@@ -71,6 +72,7 @@ function setupGlobalEvents() {
         ui: {
           ...state.ui,
           errors: {},
+          notice: "",
         },
       }));
     }
@@ -82,6 +84,7 @@ function setupGlobalEvents() {
         ui: {
           ...state.ui,
           errors: {},
+          notice: "",
         },
       }));
     }
@@ -93,6 +96,7 @@ function setupGlobalEvents() {
         ui: {
           ...state.ui,
           errors: {},
+          notice: "",
         },
       }));
     }
@@ -104,6 +108,7 @@ function setupGlobalEvents() {
         ui: {
           ...state.ui,
           errors: {},
+          notice: "",
         },
       }));
     }
@@ -115,6 +120,7 @@ function setupGlobalEvents() {
         ui: {
           ...state.ui,
           errors: {},
+          notice: "",
         },
       }));
     }

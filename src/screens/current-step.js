@@ -50,9 +50,19 @@ export function renderCurrentStep() {
     .map((item) => `<li>${escapeHtml(item)}</li>`)
     .join("");
 
+  const sourceNote = project.isFallbackRecommendation
+    ? `
+      <div class="card notice-card">
+        <p><strong>Note:</strong> This project was started from a fallback recommendation.</p>
+      </div>
+    `
+    : "";
+
   return `
     <div class="screen">
       <h1>${escapeHtml(project.title)}</h1>
+
+      ${sourceNote}
 
       <div class="card">
         <p><strong>Goal:</strong> ${escapeHtml(project.goal || "-")}</p>

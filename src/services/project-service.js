@@ -67,6 +67,8 @@ export function createProjectFromRecommendation({ entry, recommendation }) {
     stack: recommendation?.stack || ["HTML", "CSS", "JavaScript"],
     skills: recommendation?.skills || [],
     estimatedSize: recommendation?.estimatedSize || entry.scope || "MVP",
+    recommendationSource: recommendation?.source || "unknown",
+    isFallbackRecommendation: Boolean(recommendation?.isFallback),
     status: "active",
     currentStepId: step1.id,
     steps: [step1, step2, step3],

@@ -15,6 +15,7 @@ export function createInitialState() {
       isHydrated: false,
       isLoading: false,
       errors: {},
+      notice: "",
     },
   };
 }

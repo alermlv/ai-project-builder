@@ -1,11 +1,13 @@
 import { commitState, getState } from "../state.js";
 import { ROUTES } from "../utils/routes.js";
 import { requestProjectRecommendation } from "../services/ai.js";
+import { buildFallbackRecommendation } from "../services/recommendation-fallback.js";
 import { createProjectFromRecommendation } from "../services/project-service.js";
 
 export function renderRecommendation() {
   const { entry, recommendation, ui } = getState();
   const error = ui?.errors?.recommendation || "";
+  const notice = ui?.notice || "";
   const isLoading = ui?.isLoading;
 
   if (!recommendation) {
@@ -22,26 +24,54 @@ export function renderRecommendation() {
     `;
   }
 
-  const stackHtml = recommendation.stack
+  const stackHtml = (recommendation.stack || [])
     .map((item) => `<li>${escapeHtml(item)}</li>`)
     .join("");
 
-  const skillsHtml = recommendation.skills
+  const skillsHtml = (recommendation.skills || [])
     .map((item) => `<li>${escapeHtml(item)}</li>`)
     .join("");
+
+  const recommendationBadge = recommendation.isFallback
+    ? `<span class="badge badge-warning">Fallback recommendation</span>`
+    : `<span class="badge badge-success">Server recommendation</span>`;
 
   return `
     <div class="screen">
       <h1>Recommended project</h1>
 
       <div class="card">
+        <div class="meta-row">
+          ${recommendationBadge}
+        </div>
         <p><strong>Goal:</strong> ${escapeHtml(entry.goal || "-")}</p>
         <p><strong>Level:</strong> ${escapeHtml(formatLabel(entry.level))}</p>
         <p><strong>Scope:</strong> ${escapeHtml(formatLabel(entry.scope))}</p>
       </div>
 
-      <div class="card">
-        <p><strong>Project title:</strong> ${escapeHtml(recommendation.title)}</p>
+      ${
+        notice
+          ? `
+        <div class="card notice-card">
+          <p><strong>Note:</strong> ${escapeHtml(notice)}</p>
+        </div>
+      `
+          : ""
+      }
+
+      ${
+        error
+          ? `
+        <div class="card error-card">
+          <p><strong>Error:</strong> ${escapeHtml(error)}</p>
+        </div>
+      `
+          : ""
+      }
+
+      <div class="card recommendation-hero">
+        <p class="eyebrow">Project title</p>
+        <h2>${escapeHtml(recommendation.title)}</h2>
         <p>${escapeHtml(recommendation.summary)}</p>
       </div>
 
@@ -60,16 +90,16 @@ export function renderRecommendation() {
       </div>
 
       <div class="card">
-        <p><strong>Estimated size:</strong> ${escapeHtml(recommendation.estimatedSize)}</p>
+        <p><strong>Estimated size:</strong> ${escapeHtml(recommendation.estimatedSize || "-")}</p>
       </div>
-
-      ${error ? `<p class="error-text">${error}</p>` : ""}
 
       <div class="button-row">
         <button class="secondary-button" id="retryRecommendationBtn" ${isLoading ? "disabled" : ""}>
-          ${isLoading ? "Refreshing..." : "Try another stub"}
+          ${isLoading ? "Refreshing..." : "Refresh recommendation"}
         </button>
-        <button id="startProjectBtn" ${isLoading ? "disabled" : ""}>Start project</button>
+        <button id="startProjectBtn" ${isLoading ? "disabled" : ""}>
+          ${isLoading ? "Please wait..." : "Start project"}
+        </button>
       </div>
 
       <button class="secondary-button" data-back="entry-scope" ${isLoading ? "disabled" : ""}>
@@ -93,6 +123,7 @@ document.addEventListener("click", async (e) => {
         ...state.ui,
         isLoading: true,
         errors: {},
+        notice: "",
       },
     }));
 
@@ -110,19 +141,26 @@ document.addEventListener("click", async (e) => {
           ...state.ui,
           isLoading: false,
           errors: {},
+          notice: "",
         },
       }));
     } catch (error) {
+      const fallbackRecommendation = buildFallbackRecommendation({
+        goal: entry.goal,
+        level: entry.level,
+        scope: entry.scope,
+      });
+
       commitState((state) => ({
         ...state,
+        recommendation: fallbackRecommendation,
         ui: {
           ...state.ui,
           isLoading: false,
-          errors: {
-            ...state.ui.errors,
-            recommendation:
-              error.message || "Failed to refresh recommendation.",
-          },
+          errors: {},
+          notice:
+            error.message ||
+            "Could not refresh from server, so fallback data was used.",
         },
       }));
     }
@@ -167,6 +205,7 @@ document.addEventListener("click", async (e) => {
     ui: {
       ...state.ui,
       errors: {},
+      notice: "",
     },
   }));
 });
