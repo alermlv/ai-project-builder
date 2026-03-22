@@ -29,6 +29,7 @@ function hydrateAppState() {
         ...(savedState.entry || {}),
       },
       recommendation: savedState.recommendation || null,
+      project: savedState.project || null,
       ui: {
         isHydrated: true,
         isLoading: false,

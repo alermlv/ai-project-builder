@@ -1,11 +1,12 @@
 import { commitState, getState } from "../state.js";
 import { ROUTES } from "../utils/routes.js";
-import { generateProjectRecommendation } from "../services/recommendation-service.js";
+import { requestProjectRecommendation } from "../services/ai.js";
 import { createProjectFromRecommendation } from "../services/project-service.js";
 
 export function renderRecommendation() {
   const { entry, recommendation, ui } = getState();
   const error = ui?.errors?.recommendation || "";
+  const isLoading = ui?.isLoading;
 
   if (!recommendation) {
     return `
@@ -65,33 +66,67 @@ export function renderRecommendation() {
       ${error ? `<p class="error-text">${error}</p>` : ""}
 
       <div class="button-row">
-        <button class="secondary-button" id="retryRecommendationBtn">Try another stub</button>
-        <button id="startProjectBtn">Start project</button>
+        <button class="secondary-button" id="retryRecommendationBtn" ${isLoading ? "disabled" : ""}>
+          ${isLoading ? "Refreshing..." : "Try another stub"}
+        </button>
+        <button id="startProjectBtn" ${isLoading ? "disabled" : ""}>Start project</button>
       </div>
 
-      <button class="secondary-button" data-back="entry-scope">Back</button>
+      <button class="secondary-button" data-back="entry-scope" ${isLoading ? "disabled" : ""}>
+        Back
+      </button>
     </div>
   `;
 }
 
-document.addEventListener("click", (e) => {
+document.addEventListener("click", async (e) => {
   if (e.target.id === "retryRecommendationBtn") {
-    const { entry } = getState();
+    const { entry, ui } = getState();
 
-    const recommendation = generateProjectRecommendation({
-      goal: entry.goal,
-      level: entry.level,
-      scope: entry.scope,
-    });
+    if (ui.isLoading) {
+      return;
+    }
 
     commitState((state) => ({
       ...state,
-      recommendation,
       ui: {
         ...state.ui,
+        isLoading: true,
         errors: {},
       },
     }));
+
+    try {
+      const recommendation = await requestProjectRecommendation({
+        goal: entry.goal,
+        level: entry.level,
+        scope: entry.scope,
+      });
+
+      commitState((state) => ({
+        ...state,
+        recommendation,
+        ui: {
+          ...state.ui,
+          isLoading: false,
+          errors: {},
+        },
+      }));
+    } catch (error) {
+      commitState((state) => ({
+        ...state,
+        ui: {
+          ...state.ui,
+          isLoading: false,
+          errors: {
+            ...state.ui.errors,
+            recommendation:
+              error.message || "Failed to refresh recommendation.",
+          },
+        },
+      }));
+    }
+
     return;
   }
 
@@ -99,7 +134,11 @@ document.addEventListener("click", (e) => {
     return;
   }
 
-  const { entry, recommendation } = getState();
+  const { entry, recommendation, ui } = getState();
+
+  if (ui.isLoading) {
+    return;
+  }
 
   if (!recommendation) {
     commitState((state) => ({
