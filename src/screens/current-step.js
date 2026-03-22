@@ -1,5 +1,10 @@
 import { getState } from "../state.js";
 import { ROUTES } from "../utils/routes.js";
+import {
+  escapeHtml,
+  formatLabel,
+  formatTaskStatus,
+} from "../utils/formatters.js";
 
 export function renderCurrentStep() {
   const { project } = getState();
@@ -35,15 +40,12 @@ export function renderCurrentStep() {
     `;
   }
 
-  const tasksHtml = currentStep.tasks
-    .map(
-      (task) => `
-        <li class="task-item">
-          <span>${escapeHtml(task.title)}</span>
-          <span>${escapeHtml(task.status)}</span>
-        </li>
-      `,
-    )
+  const taskCardsHtml = (currentStep.tasks || [])
+    .map((task, index) => renderTaskCard(task, index))
+    .join("");
+
+  const verificationHtml = (currentStep.verificationSteps || [])
+    .map((item) => `<li>${escapeHtml(item)}</li>`)
     .join("");
 
   const stackHtml = (project.stack || [])
@@ -83,15 +85,29 @@ export function renderCurrentStep() {
       </div>
 
       <div class="card">
-        <p><strong>Current step:</strong> ${escapeHtml(currentStep.title)}</p>
-        <p>${escapeHtml(currentStep.description)}</p>
+        <p class="eyebrow">Current step</p>
+        <h2>${escapeHtml(currentStep.title)}</h2>
+        <p><strong>Summary:</strong> ${escapeHtml(currentStep.summary || "-")}</p>
+        <p><strong>Why this matters:</strong> ${escapeHtml(currentStep.whyItMatters || "-")}</p>
+      </div>
+
+      ${taskCardsHtml}
+
+      <div class="card">
+        <p class="eyebrow">Step verification</p>
+        <ul class="bullet-list">
+          ${verificationHtml}
+        </ul>
       </div>
 
       <div class="card">
-        <p><strong>Tasks</strong></p>
-        <ul class="task-list">
-          ${tasksHtml}
-        </ul>
+        <p class="eyebrow">Step outcome</p>
+        <p>${escapeHtml(currentStep.outcomeSummary || "-")}</p>
+      </div>
+
+      <div class="card">
+        <p class="eyebrow">Recommended commit</p>
+        <pre class="code-block"><code>${escapeHtml(currentStep.commitMessage || "")}</code></pre>
       </div>
 
       <button data-nav="${ROUTES.PROJECT_MAP}">Open Project Map</button>
@@ -99,19 +115,64 @@ export function renderCurrentStep() {
   `;
 }
 
-function formatLabel(value) {
-  if (!value) {
-    return "-";
-  }
+function renderTaskCard(task, index) {
+  const filesHtml = (task.files || [])
+    .map((file) => renderFileArtifact(file))
+    .join("");
 
-  return value.charAt(0).toUpperCase() + value.slice(1);
+  const terminalHtml = (task.terminal || [])
+    .map(
+      (item) => `
+        <div class="terminal-block">
+          <p><strong>${escapeHtml(item.label || "Command")}</strong></p>
+          <pre class="code-block"><code>${escapeHtml(item.command || "")}</code></pre>
+        </div>
+      `,
+    )
+    .join("");
+
+  const commonMistakesHtml = (task.commonMistakes || [])
+    .map((item) => `<li>${escapeHtml(item)}</li>`)
+    .join("");
+
+  return `
+    <div class="card task-card">
+      <div class="meta-row">
+        <span class="badge badge-neutral">Task ${index + 1}</span>
+        <span class="badge badge-status">${escapeHtml(formatTaskStatus(task.status))}</span>
+      </div>
+
+      <h3>${escapeHtml(task.title)}</h3>
+
+      <p><strong>What to do:</strong> ${escapeHtml(task.explanation || "-")}</p>
+      <p><strong>Why:</strong> ${escapeHtml(task.purpose || "-")}</p>
+      <p><strong>Definition of Done:</strong> ${escapeHtml(task.definitionOfDone || "-")}</p>
+      <p><strong>Expected result:</strong> ${escapeHtml(task.expectedResult || "-")}</p>
+
+      ${
+        commonMistakesHtml
+          ? `
+            <div>
+              <p><strong>Common mistakes</strong></p>
+              <ul class="bullet-list">
+                ${commonMistakesHtml}
+              </ul>
+            </div>
+          `
+          : ""
+      }
+
+      ${filesHtml}
+      ${terminalHtml}
+    </div>
+  `;
 }
 
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+function renderFileArtifact(file) {
+  return `
+    <div class="file-artifact">
+      <p><strong>File:</strong> ${escapeHtml(file.path || "-")}</p>
+      <pre class="code-block"><code>${escapeHtml(file.code || "")}</code></pre>
+    </div>
+  `;
 }

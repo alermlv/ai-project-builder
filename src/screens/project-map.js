@@ -1,5 +1,6 @@
 import { getState } from "../state.js";
 import { ROUTES } from "../utils/routes.js";
+import { escapeHtml, formatLabel } from "../utils/formatters.js";
 
 export function renderProjectMap() {
   const { project } = getState();
@@ -18,16 +19,25 @@ export function renderProjectMap() {
     `;
   }
 
-  const stepsHtml = project.steps
-    .map(
-      (step, index) => `
+  const stepsHtml = (project.steps || [])
+    .map((step, index) => {
+      const isCurrent = step.id === project.currentStepId;
+
+      return `
         <div class="card">
-          <p><strong>Step ${index + 1}:</strong> ${escapeHtml(step.title)}</p>
-          <p><strong>Status:</strong> ${escapeHtml(step.status)}</p>
-          <p>${escapeHtml(step.description)}</p>
+          <div class="meta-row">
+            <span class="badge badge-neutral">Step ${index + 1}</span>
+            <span class="badge ${isCurrent ? "badge-current" : "badge-status"}">
+              ${escapeHtml(formatLabel(step.status || "planned"))}
+            </span>
+          </div>
+
+          <p><strong>${escapeHtml(step.title)}</strong></p>
+          <p>${escapeHtml(step.summary || "-")}</p>
+          <p><strong>Tasks:</strong> ${(step.tasks || []).length}</p>
         </div>
-      `,
-    )
+      `;
+    })
     .join("");
 
   return `
@@ -44,13 +54,4 @@ export function renderProjectMap() {
       <button data-nav="${ROUTES.CURRENT_STEP}">Back to Current Step</button>
     </div>
   `;
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
 }
