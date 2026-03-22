@@ -77,7 +77,7 @@ export function renderCurrentStep() {
         rightActionRoute: ROUTES.PROJECT_MAP,
       })}
 
-      <div class="screen-body screen-body--with-bottom-bar">
+      <div class="screen-body">
         ${sourceNote}
 
         ${renderProgressSummary({
@@ -144,19 +144,6 @@ export function renderCurrentStep() {
             code: currentStep.commitMessage || "",
           })}
         </section>
-      </div>
-
-      <div class="bottom-action-bar">
-        <div class="bottom-action-bar__content">
-          <div>
-            <p class="bottom-action-bar__label">Current step</p>
-            <p class="bottom-action-bar__title">${escapeHtml(currentStep.title)}</p>
-          </div>
-
-          <button class="secondary-button" data-nav="${ROUTES.PROJECT_MAP}">
-            Open Map
-          </button>
-        </div>
       </div>
     </div>
   `;
