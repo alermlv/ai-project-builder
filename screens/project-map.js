@@ -36,6 +36,7 @@ export function renderProjectMap() {
 
       <div class="card">
         <p><strong>Project:</strong> ${escapeHtml(project.title)}</p>
+        <p><strong>Estimated size:</strong> ${escapeHtml(project.estimatedSize || "-")}</p>
       </div>
 
       ${stepsHtml}

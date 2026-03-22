@@ -23,7 +23,7 @@ export function createStep({
   };
 }
 
-export function createProject({ goal, level, scope }) {
+export function createProjectFromRecommendation({ entry, recommendation }) {
   const step1 = createStep({
     title: "Set up the project foundation",
     description: "Create the initial structure, layout, and app shell.",
@@ -59,13 +59,14 @@ export function createProject({ goal, level, scope }) {
 
   return {
     id: generateId("project"),
-    title: goal || "New AI Project",
-    goal: goal || "",
-    level: level || "",
-    scope: scope || "",
-    stack: ["HTML", "CSS", "JavaScript"],
-    skills: ["UI structure", "state management", "local persistence"],
-    estimatedSize: scope || "MVP",
+    title: recommendation?.title || entry.goal || "New AI Project",
+    goal: entry.goal || "",
+    level: entry.level || "",
+    scope: entry.scope || "",
+    summary: recommendation?.summary || "",
+    stack: recommendation?.stack || ["HTML", "CSS", "JavaScript"],
+    skills: recommendation?.skills || [],
+    estimatedSize: recommendation?.estimatedSize || entry.scope || "MVP",
     status: "active",
     currentStepId: step1.id,
     steps: [step1, step2, step3],

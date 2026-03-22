@@ -9,9 +9,11 @@ export function createInitialState() {
       level: "",
       scope: "",
     },
+    recommendation: null,
     project: null,
     ui: {
       isHydrated: false,
+      isLoading: false,
       errors: {},
     },
   };

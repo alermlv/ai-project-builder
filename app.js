@@ -28,8 +28,10 @@ function hydrateAppState() {
         scope: "",
         ...(savedState.entry || {}),
       },
+      recommendation: savedState.recommendation || null,
       ui: {
         isHydrated: true,
+        isLoading: false,
         errors: {},
         ...(savedState.ui || {}),
       },
@@ -98,6 +100,17 @@ function setupGlobalEvents() {
       commitState((state) => ({
         ...state,
         route: ROUTES.ENTRY_SCOPE,
+        ui: {
+          ...state.ui,
+          errors: {},
+        },
+      }));
+    }
+
+    if (target.dataset.back === "recommendation") {
+      commitState((state) => ({
+        ...state,
+        route: ROUTES.RECOMMENDATION,
         ui: {
           ...state.ui,
           errors: {},

@@ -46,6 +46,10 @@ export function renderCurrentStep() {
     )
     .join("");
 
+  const stackHtml = (project.stack || [])
+    .map((item) => `<li>${escapeHtml(item)}</li>`)
+    .join("");
+
   return `
     <div class="screen">
       <h1>${escapeHtml(project.title)}</h1>
@@ -54,6 +58,18 @@ export function renderCurrentStep() {
         <p><strong>Goal:</strong> ${escapeHtml(project.goal || "-")}</p>
         <p><strong>Level:</strong> ${escapeHtml(project.level || "-")}</p>
         <p><strong>Scope:</strong> ${escapeHtml(project.scope || "-")}</p>
+        <p><strong>Estimated size:</strong> ${escapeHtml(project.estimatedSize || "-")}</p>
+      </div>
+
+      <div class="card">
+        <p>${escapeHtml(project.summary || "No project summary yet.")}</p>
+      </div>
+
+      <div class="card">
+        <p><strong>Suggested stack</strong></p>
+        <ul class="bullet-list">
+          ${stackHtml}
+        </ul>
       </div>
 
       <div class="card">

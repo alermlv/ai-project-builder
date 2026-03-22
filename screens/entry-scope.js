@@ -1,6 +1,6 @@
 import { commitState, getState } from "../state.js";
 import { ROUTES } from "../utils/routes.js";
-import { createProject } from "../services/project-service.js";
+import { generateProjectRecommendation } from "../services/recommendation-service.js";
 
 const SCOPE_OPTIONS = [
   { value: "small", label: "Small project" },
@@ -42,7 +42,7 @@ export function renderEntryScope() {
 
       <div class="button-row">
         <button class="secondary-button" data-back="entry-level">Back</button>
-        <button id="scopeContinueBtn">Continue</button>
+        <button id="scopeContinueBtn">Get recommendation</button>
       </div>
     </div>
   `;
@@ -89,7 +89,7 @@ document.addEventListener("click", (e) => {
     return;
   }
 
-  const project = createProject({
+  const recommendation = generateProjectRecommendation({
     goal: entry.goal,
     level: entry.level,
     scope: entry.scope,
@@ -97,8 +97,8 @@ document.addEventListener("click", (e) => {
 
   commitState((state) => ({
     ...state,
-    project,
-    route: ROUTES.CURRENT_STEP,
+    recommendation,
+    route: ROUTES.RECOMMENDATION,
     ui: {
       ...state.ui,
       errors: {},
