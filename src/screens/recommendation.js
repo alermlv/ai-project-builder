@@ -1,8 +1,12 @@
 import { commitState, getState } from "../state.js";
 import { ROUTES } from "../utils/routes.js";
-import { requestProjectRecommendation } from "../services/ai.js";
+import {
+  requestProjectRecommendation,
+  requestProjectPlan,
+} from "../services/ai.js";
 import { buildFallbackRecommendation } from "../services/recommendation-fallback.js";
-import { createProjectFromRecommendation } from "../services/project-service.js";
+import { buildProjectFromServerPlan } from "../services/project-service.js";
+import { formatLabel, escapeHtml } from "../utils/formatters.js";
 
 export function renderRecommendation() {
   const { entry, recommendation, ui } = getState();
@@ -98,7 +102,7 @@ export function renderRecommendation() {
           ${isLoading ? "Refreshing..." : "Refresh recommendation"}
         </button>
         <button id="startProjectBtn" ${isLoading ? "disabled" : ""}>
-          ${isLoading ? "Please wait..." : "Start project"}
+          ${isLoading ? "Generating plan..." : "Start project"}
         </button>
       </div>
 
@@ -193,36 +197,47 @@ document.addEventListener("click", async (e) => {
     return;
   }
 
-  const project = createProjectFromRecommendation({
-    entry,
-    recommendation,
-  });
-
   commitState((state) => ({
     ...state,
-    project,
-    route: ROUTES.CURRENT_STEP,
     ui: {
       ...state.ui,
+      isLoading: true,
       errors: {},
       notice: "",
     },
   }));
-});
 
-function formatLabel(value) {
-  if (!value) {
-    return "-";
+  try {
+    const serverPlan = await requestProjectPlan({
+      entry,
+      recommendation,
+    });
+
+    const project = buildProjectFromServerPlan(serverPlan);
+
+    commitState((state) => ({
+      ...state,
+      project,
+      route: ROUTES.CURRENT_STEP,
+      ui: {
+        ...state.ui,
+        isLoading: false,
+        errors: {},
+        notice: "",
+      },
+    }));
+  } catch (error) {
+    commitState((state) => ({
+      ...state,
+      ui: {
+        ...state.ui,
+        isLoading: false,
+        errors: {
+          ...state.ui.errors,
+          recommendation:
+            error.message || "Failed to generate the project plan.",
+        },
+      },
+    }));
   }
-
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
+});

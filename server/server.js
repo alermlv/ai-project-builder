@@ -1,5 +1,6 @@
 import http from "http";
 import { generateProjectRecommendation } from "./recommendation-engine.js";
+import { generateProjectPlan } from "./plan-engine.js";
 
 const PORT = 3000;
 
@@ -37,6 +38,38 @@ const server = http.createServer(async (req, res) => {
       return;
     } catch (error) {
       console.error("Failed to handle /api/recommend-project:", error);
+
+      sendJson(res, 500, {
+        error: "Internal server error",
+      });
+      return;
+    }
+  }
+
+  if (req.method === "POST" && req.url === "/api/generate-plan") {
+    try {
+      const body = await readJsonBody(req);
+      const validationError = validateGeneratePlanInput(body);
+
+      if (validationError) {
+        sendJson(res, 400, {
+          error: validationError,
+        });
+        return;
+      }
+
+      const projectPlan = generateProjectPlan({
+        entry: body.entry,
+        recommendation: body.recommendation,
+      });
+
+      sendJson(res, 200, {
+        success: true,
+        data: projectPlan,
+      });
+      return;
+    } catch (error) {
+      console.error("Failed to handle /api/generate-plan:", error);
 
       sendJson(res, 500, {
         error: "Internal server error",
@@ -102,6 +135,30 @@ function validateRecommendationInput(body) {
 
   if (!body.scope || typeof body.scope !== "string") {
     return "Field 'scope' is required.";
+  }
+
+  return null;
+}
+
+function validateGeneratePlanInput(body) {
+  if (!body.entry || typeof body.entry !== "object") {
+    return "Field 'entry' is required.";
+  }
+
+  if (!body.recommendation || typeof body.recommendation !== "object") {
+    return "Field 'recommendation' is required.";
+  }
+
+  if (!body.entry.goal || typeof body.entry.goal !== "string") {
+    return "Field 'entry.goal' is required.";
+  }
+
+  if (!body.entry.level || typeof body.entry.level !== "string") {
+    return "Field 'entry.level' is required.";
+  }
+
+  if (!body.entry.scope || typeof body.entry.scope !== "string") {
+    return "Field 'entry.scope' is required.";
   }
 
   return null;

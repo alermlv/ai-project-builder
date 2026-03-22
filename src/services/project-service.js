@@ -1,24 +1,21 @@
 import { generateId } from "../utils/ids.js";
-import { createStarterPlanBlueprint } from "./plan-blueprint.js";
 
-export function createProjectFromRecommendation({ entry, recommendation }) {
-  const steps = createStarterPlanBlueprint();
-
+export function buildProjectFromServerPlan(serverPlan) {
   return {
     id: generateId("project"),
-    title: recommendation?.title || entry.goal || "New AI Project",
-    goal: entry.goal || "",
-    level: entry.level || "",
-    scope: entry.scope || "",
-    summary: recommendation?.summary || "",
-    stack: recommendation?.stack || ["HTML", "CSS", "JavaScript"],
-    skills: recommendation?.skills || [],
-    estimatedSize: recommendation?.estimatedSize || entry.scope || "MVP",
-    recommendationSource: recommendation?.source || "unknown",
-    isFallbackRecommendation: Boolean(recommendation?.isFallback),
-    status: "active",
-    currentStepId: steps[0]?.id || null,
-    steps,
+    title: serverPlan?.title || "New AI Project",
+    goal: serverPlan?.goal || "",
+    level: serverPlan?.level || "",
+    scope: serverPlan?.scope || "",
+    summary: serverPlan?.summary || "",
+    stack: serverPlan?.stack || ["HTML", "CSS", "JavaScript"],
+    skills: serverPlan?.skills || [],
+    estimatedSize: serverPlan?.estimatedSize || "MVP",
+    recommendationSource: serverPlan?.recommendationSource || "server",
+    isFallbackRecommendation: Boolean(serverPlan?.isFallbackRecommendation),
+    status: serverPlan?.status || "active",
+    currentStepId: serverPlan?.currentStepId || null,
+    steps: Array.isArray(serverPlan?.steps) ? serverPlan.steps : [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
