@@ -20,3 +20,112 @@ export function buildProjectFromServerPlan(serverPlan) {
     updatedAt: new Date().toISOString(),
   };
 }
+
+export function completeTaskInProject(project, taskId) {
+  if (!project || !Array.isArray(project.steps)) {
+    return project;
+  }
+
+  const currentStepIndex = project.steps.findIndex(
+    (step) => step.id === project.currentStepId,
+  );
+
+  if (currentStepIndex < 0) {
+    return project;
+  }
+
+  const currentStep = project.steps[currentStepIndex];
+
+  if (!Array.isArray(currentStep.tasks)) {
+    return project;
+  }
+
+  let taskWasUpdated = false;
+
+  const updatedTasks = currentStep.tasks.map((task) => {
+    if (task.id !== taskId) {
+      return task;
+    }
+
+    if (task.status === "completed") {
+      return task;
+    }
+
+    taskWasUpdated = true;
+
+    return {
+      ...task,
+      status: "completed",
+    };
+  });
+
+  if (!taskWasUpdated) {
+    return project;
+  }
+
+  const areAllTasksCompleted = updatedTasks.every(
+    (task) => task.status === "completed",
+  );
+
+  const updatedCurrentStep = {
+    ...currentStep,
+    tasks: updatedTasks,
+    status: areAllTasksCompleted ? "completed" : "current",
+  };
+
+  const updatedSteps = [...project.steps];
+  updatedSteps[currentStepIndex] = updatedCurrentStep;
+
+  let nextCurrentStepId = project.currentStepId;
+  let nextProjectStatus = project.status;
+
+  if (areAllTasksCompleted) {
+    const nextStepIndex = currentStepIndex + 1;
+    const nextStep = updatedSteps[nextStepIndex];
+
+    if (nextStep) {
+      updatedSteps[nextStepIndex] = {
+        ...nextStep,
+        status: "current",
+      };
+      nextCurrentStepId = nextStep.id;
+    } else {
+      nextCurrentStepId = null;
+      nextProjectStatus = "completed";
+    }
+  }
+
+  return {
+    ...project,
+    status: nextProjectStatus,
+    currentStepId: nextCurrentStepId,
+    steps: updatedSteps,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+export function getCurrentStep(project) {
+  if (!project || !Array.isArray(project.steps)) {
+    return null;
+  }
+
+  return (
+    project.steps.find((step) => step.id === project.currentStepId) || null
+  );
+}
+
+export function getCurrentStepIndex(project) {
+  if (!project || !Array.isArray(project.steps)) {
+    return -1;
+  }
+
+  return project.steps.findIndex((step) => step.id === project.currentStepId);
+}
+
+export function getCompletedTaskCount(step) {
+  if (!step || !Array.isArray(step.tasks)) {
+    return 0;
+  }
+
+  return step.tasks.filter((task) => task.status === "completed").length;
+}

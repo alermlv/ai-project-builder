@@ -25,11 +25,15 @@ export function renderTaskCard(task, index) {
     .map((item) => `<li>${escapeHtml(item)}</li>`)
     .join("");
 
+  const isCompleted = task.status === "completed";
+
   return `
-    <article class="card task-card">
+    <article class="card task-card ${isCompleted ? "task-card--completed" : ""}">
       <div class="meta-row">
         <span class="badge badge-neutral">Task ${index + 1}</span>
-        <span class="badge badge-status">${escapeHtml(formatTaskStatus(task.status))}</span>
+        <span class="badge ${isCompleted ? "badge-completed" : "badge-status"}">
+          ${escapeHtml(formatTaskStatus(task.status))}
+        </span>
       </div>
 
       <h3>${escapeHtml(task.title)}</h3>
@@ -54,6 +58,17 @@ export function renderTaskCard(task, index) {
 
       ${filesHtml}
       ${terminalHtml}
+
+      <div class="task-card__actions">
+        <button
+          type="button"
+          class="${isCompleted ? "secondary-button" : ""}"
+          data-complete-task="${escapeHtml(task.id)}"
+          ${isCompleted ? "disabled" : ""}
+        >
+          ${isCompleted ? "Completed" : "Complete task"}
+        </button>
+      </div>
     </article>
   `;
 }
