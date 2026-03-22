@@ -6,10 +6,13 @@ export function createInitialState() {
     route: "entry-goal",
     entry: {
       goal: "",
+      level: "",
+      scope: "",
     },
     project: null,
     ui: {
       isHydrated: false,
+      errors: {},
     },
   };
 }

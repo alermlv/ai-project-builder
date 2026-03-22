@@ -1,4 +1,5 @@
 import { getState } from "../state.js";
+import { ROUTES } from "../utils/routes.js";
 
 export function renderCurrentStep() {
   const { project } = getState();
@@ -12,7 +13,7 @@ export function renderCurrentStep() {
           <p>Create a starter project first.</p>
         </div>
 
-        <button data-nav="entry-goal">Go to Entry</button>
+        <button data-nav="${ROUTES.ENTRY_GOAL}">Go to Entry</button>
       </div>
     `;
   }
@@ -23,13 +24,13 @@ export function renderCurrentStep() {
   if (!currentStep) {
     return `
       <div class="screen">
-        <h1>${project.title}</h1>
+        <h1>${escapeHtml(project.title)}</h1>
 
         <div class="card">
           <p>No current step found.</p>
         </div>
 
-        <button data-nav="project-map">Open Project Map</button>
+        <button data-nav="${ROUTES.PROJECT_MAP}">Open Project Map</button>
       </div>
     `;
   }
@@ -38,8 +39,8 @@ export function renderCurrentStep() {
     .map(
       (task) => `
         <li class="task-item">
-          <span>${task.title}</span>
-          <span>${task.status}</span>
+          <span>${escapeHtml(task.title)}</span>
+          <span>${escapeHtml(task.status)}</span>
         </li>
       `,
     )
@@ -47,11 +48,17 @@ export function renderCurrentStep() {
 
   return `
     <div class="screen">
-      <h1>${project.title}</h1>
+      <h1>${escapeHtml(project.title)}</h1>
 
       <div class="card">
-        <p><strong>Current step:</strong> ${currentStep.title}</p>
-        <p>${currentStep.description}</p>
+        <p><strong>Goal:</strong> ${escapeHtml(project.goal || "-")}</p>
+        <p><strong>Level:</strong> ${escapeHtml(project.level || "-")}</p>
+        <p><strong>Scope:</strong> ${escapeHtml(project.scope || "-")}</p>
+      </div>
+
+      <div class="card">
+        <p><strong>Current step:</strong> ${escapeHtml(currentStep.title)}</p>
+        <p>${escapeHtml(currentStep.description)}</p>
       </div>
 
       <div class="card">
@@ -61,7 +68,16 @@ export function renderCurrentStep() {
         </ul>
       </div>
 
-      <button data-nav="project-map">Open Project Map</button>
+      <button data-nav="${ROUTES.PROJECT_MAP}">Open Project Map</button>
     </div>
   `;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }

@@ -23,7 +23,7 @@ export function createStep({
   };
 }
 
-export function createProject({ goal }) {
+export function createProject({ goal, level, scope }) {
   const step1 = createStep({
     title: "Set up the project foundation",
     description: "Create the initial structure, layout, and app shell.",
@@ -61,9 +61,11 @@ export function createProject({ goal }) {
     id: generateId("project"),
     title: goal || "New AI Project",
     goal: goal || "",
+    level: level || "",
+    scope: scope || "",
     stack: ["HTML", "CSS", "JavaScript"],
     skills: ["UI structure", "state management", "local persistence"],
-    estimatedSize: "MVP",
+    estimatedSize: scope || "MVP",
     status: "active",
     currentStepId: step1.id,
     steps: [step1, step2, step3],

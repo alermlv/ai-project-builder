@@ -1,7 +1,10 @@
-import { commitState } from "../state.js";
-import { createProject } from "../services/project-service.js";
+import { commitState, getState } from "../state.js";
+import { ROUTES } from "../utils/routes.js";
 
 export function renderEntryGoal() {
+  const { entry, ui } = getState();
+  const error = ui?.errors?.goal || "";
+
   return `
     <div class="screen">
       <h1>What do you want to learn?</h1>
@@ -13,22 +16,37 @@ export function renderEntryGoal() {
       <input
         id="goalInput"
         placeholder="e.g. Build a SaaS landing page"
+        value="${escapeHtml(entry.goal || "")}"
       />
 
-      <button id="continueBtn">Create starter project</button>
+      ${error ? `<p class="error-text">${error}</p>` : ""}
+
+      <button id="goalContinueBtn">Continue</button>
     </div>
   `;
 }
 
 document.addEventListener("click", (e) => {
-  if (e.target.id !== "continueBtn") {
+  if (e.target.id !== "goalContinueBtn") {
     return;
   }
 
   const input = document.getElementById("goalInput");
   const goal = input?.value?.trim() || "";
 
-  const project = createProject({ goal });
+  if (!goal) {
+    commitState((state) => ({
+      ...state,
+      ui: {
+        ...state.ui,
+        errors: {
+          ...state.ui.errors,
+          goal: "Please enter what you want to learn.",
+        },
+      },
+    }));
+    return;
+  }
 
   commitState((state) => ({
     ...state,
@@ -36,7 +54,19 @@ document.addEventListener("click", (e) => {
       ...state.entry,
       goal,
     },
-    project,
-    route: "current-step",
+    route: ROUTES.ENTRY_LEVEL,
+    ui: {
+      ...state.ui,
+      errors: {},
+    },
   }));
 });
+
+function escapeHtml(value) {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}

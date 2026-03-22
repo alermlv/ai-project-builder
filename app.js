@@ -7,6 +7,7 @@ import {
   commitState,
 } from "./state.js";
 import { loadAppState, saveAppState } from "./storage.js";
+import { ROUTES } from "./utils/routes.js";
 
 function init() {
   registerStateListener(handleStateChange);
@@ -21,9 +22,16 @@ function hydrateAppState() {
   if (savedState) {
     setState({
       ...savedState,
+      entry: {
+        goal: "",
+        level: "",
+        scope: "",
+        ...(savedState.entry || {}),
+      },
       ui: {
-        ...(savedState.ui || {}),
         isHydrated: true,
+        errors: {},
+        ...(savedState.ui || {}),
       },
     });
     return;
@@ -57,6 +65,43 @@ function setupGlobalEvents() {
       commitState((state) => ({
         ...state,
         route,
+        ui: {
+          ...state.ui,
+          errors: {},
+        },
+      }));
+    }
+
+    if (target.dataset.back === "entry-goal") {
+      commitState((state) => ({
+        ...state,
+        route: ROUTES.ENTRY_GOAL,
+        ui: {
+          ...state.ui,
+          errors: {},
+        },
+      }));
+    }
+
+    if (target.dataset.back === "entry-level") {
+      commitState((state) => ({
+        ...state,
+        route: ROUTES.ENTRY_LEVEL,
+        ui: {
+          ...state.ui,
+          errors: {},
+        },
+      }));
+    }
+
+    if (target.dataset.back === "entry-scope") {
+      commitState((state) => ({
+        ...state,
+        route: ROUTES.ENTRY_SCOPE,
+        ui: {
+          ...state.ui,
+          errors: {},
+        },
       }));
     }
   });

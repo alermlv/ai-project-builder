@@ -72,3 +72,39 @@ input {
   padding: 10px 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
+
+.option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.option-card {
+  width: 100%;
+  text-align: left;
+  background: #1e293b;
+  border: 1px solid transparent;
+}
+
+.option-card.is-selected {
+  border-color: #60a5fa;
+  background: #1d4ed8;
+}
+
+.button-row {
+  display: flex;
+  gap: 12px;
+}
+
+.button-row > button {
+  flex: 1;
+}
+
+.secondary-button {
+  background: #334155;
+}
+
+.error-text {
+  color: #fca5a5;
+  font-size: 14px;
+}

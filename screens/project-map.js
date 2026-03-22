@@ -1,4 +1,5 @@
 import { getState } from "../state.js";
+import { ROUTES } from "../utils/routes.js";
 
 export function renderProjectMap() {
   const { project } = getState();
@@ -12,7 +13,7 @@ export function renderProjectMap() {
           <p>No project created yet.</p>
         </div>
 
-        <button data-nav="entry-goal">Go to Entry</button>
+        <button data-nav="${ROUTES.ENTRY_GOAL}">Go to Entry</button>
       </div>
     `;
   }
@@ -21,9 +22,9 @@ export function renderProjectMap() {
     .map(
       (step, index) => `
         <div class="card">
-          <p><strong>Step ${index + 1}:</strong> ${step.title}</p>
-          <p>Status: ${step.status}</p>
-          <p>${step.description}</p>
+          <p><strong>Step ${index + 1}:</strong> ${escapeHtml(step.title)}</p>
+          <p><strong>Status:</strong> ${escapeHtml(step.status)}</p>
+          <p>${escapeHtml(step.description)}</p>
         </div>
       `,
     )
@@ -33,9 +34,22 @@ export function renderProjectMap() {
     <div class="screen">
       <h1>Project Map</h1>
 
+      <div class="card">
+        <p><strong>Project:</strong> ${escapeHtml(project.title)}</p>
+      </div>
+
       ${stepsHtml}
 
-      <button data-nav="current-step">Back to Current Step</button>
+      <button data-nav="${ROUTES.CURRENT_STEP}">Back to Current Step</button>
     </div>
   `;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
