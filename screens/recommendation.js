@@ -35,8 +35,8 @@ export function renderRecommendation() {
 
       <div class="card">
         <p><strong>Goal:</strong> ${escapeHtml(entry.goal || "-")}</p>
-        <p><strong>Level:</strong> ${escapeHtml(entry.level || "-")}</p>
-        <p><strong>Scope:</strong> ${escapeHtml(entry.scope || "-")}</p>
+        <p><strong>Level:</strong> ${escapeHtml(formatLabel(entry.level))}</p>
+        <p><strong>Scope:</strong> ${escapeHtml(formatLabel(entry.scope))}</p>
       </div>
 
       <div class="card">
@@ -131,6 +131,14 @@ document.addEventListener("click", (e) => {
     },
   }));
 });
+
+function formatLabel(value) {
+  if (!value) {
+    return "-";
+  }
+
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
 
 function escapeHtml(value) {
   return String(value)

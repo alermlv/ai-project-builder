@@ -56,8 +56,8 @@ export function renderCurrentStep() {
 
       <div class="card">
         <p><strong>Goal:</strong> ${escapeHtml(project.goal || "-")}</p>
-        <p><strong>Level:</strong> ${escapeHtml(project.level || "-")}</p>
-        <p><strong>Scope:</strong> ${escapeHtml(project.scope || "-")}</p>
+        <p><strong>Level:</strong> ${escapeHtml(formatLabel(project.level))}</p>
+        <p><strong>Scope:</strong> ${escapeHtml(formatLabel(project.scope))}</p>
         <p><strong>Estimated size:</strong> ${escapeHtml(project.estimatedSize || "-")}</p>
       </div>
 
@@ -87,6 +87,14 @@ export function renderCurrentStep() {
       <button data-nav="${ROUTES.PROJECT_MAP}">Open Project Map</button>
     </div>
   `;
+}
+
+function formatLabel(value) {
+  if (!value) {
+    return "-";
+  }
+
+  return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
 function escapeHtml(value) {
