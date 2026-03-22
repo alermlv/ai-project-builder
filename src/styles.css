@@ -247,3 +247,46 @@ input {
   font-size: 13px;
   line-height: 1.5;
 }
+
+.code-block code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+}
+
+/* Syntax highlighting tokens */
+
+.token-keyword {
+  color: #93c5fd;
+}
+
+.token-string {
+  color: #86efac;
+}
+
+.token-comment {
+  color: #94a3b8;
+  font-style: italic;
+}
+
+.token-number {
+  color: #fca5a5;
+}
+
+.token-tag {
+  color: #f9a8d4;
+}
+
+.token-attr {
+  color: #c4b5fd;
+}
+
+.token-selector {
+  color: #fcd34d;
+}
+
+.token-property {
+  color: #7dd3fc;
+}
+
+.token-value {
+  color: #86efac;
+}

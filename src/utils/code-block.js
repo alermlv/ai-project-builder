@@ -1,8 +1,10 @@
 import { escapeHtml } from "./formatters.js";
+import { highlightCode } from "./syntax-highlight.js";
 
 export function renderCodeBlock({ code = "", label = "", language = "" }) {
   const safeCode = String(code);
   const encodedCode = encodeURIComponent(safeCode);
+  const highlightedCode = highlightCode(safeCode, language);
 
   return `
     <div class="code-block-wrapper">
@@ -20,7 +22,7 @@ export function renderCodeBlock({ code = "", label = "", language = "" }) {
         </button>
       </div>
 
-      <pre class="code-block"><code>${escapeHtml(safeCode)}</code></pre>
+      <pre class="code-block language-${escapeHtml(language || "text")}"><code>${highlightedCode}</code></pre>
     </div>
   `;
 }
