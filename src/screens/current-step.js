@@ -1,11 +1,10 @@
 import { getState } from "../state.js";
 import { ROUTES } from "../utils/routes.js";
-import {
-  escapeHtml,
-  formatLabel,
-  formatTaskStatus,
-} from "../utils/formatters.js";
+import { escapeHtml, formatLabel } from "../utils/formatters.js";
 import { renderCodeBlock } from "../utils/code-block.js";
+import { renderAppHeader } from "../components/app-header.js";
+import { renderProgressSummary } from "../components/progress-summary.js";
+import { renderTaskCard } from "../components/task-card.js";
 
 export function renderCurrentStep() {
   const { project } = getState();
@@ -24,19 +23,27 @@ export function renderCurrentStep() {
     `;
   }
 
-  const currentStep =
-    project.steps.find((step) => step.id === project.currentStepId) || null;
+  const steps = Array.isArray(project.steps) ? project.steps : [];
+  const currentIndex = steps.findIndex(
+    (step) => step.id === project.currentStepId,
+  );
+  const currentStep = currentIndex >= 0 ? steps[currentIndex] : null;
 
   if (!currentStep) {
     return `
       <div class="screen">
-        <h1>${escapeHtml(project.title)}</h1>
+        ${renderAppHeader({
+          title: project.title,
+          subtitle: "Current project",
+          rightActionLabel: "Map",
+          rightActionRoute: ROUTES.PROJECT_MAP,
+        })}
 
-        <div class="card">
-          <p>No current step found.</p>
+        <div class="screen-body">
+          <div class="card">
+            <p>No current step found.</p>
+          </div>
         </div>
-
-        <button data-nav="${ROUTES.PROJECT_MAP}">Open Project Map</button>
       </div>
     `;
   }
@@ -62,130 +69,95 @@ export function renderCurrentStep() {
     : "";
 
   return `
-    <div class="screen">
-      <h1>${escapeHtml(project.title)}</h1>
+    <div class="screen screen--with-fixed-header">
+      ${renderAppHeader({
+        title: project.title,
+        subtitle: "Current project",
+        rightActionLabel: "Map",
+        rightActionRoute: ROUTES.PROJECT_MAP,
+      })}
 
-      ${sourceNote}
+      <div class="screen-body screen-body--with-bottom-bar">
+        ${sourceNote}
 
-      <div class="card">
-        <p><strong>Goal:</strong> ${escapeHtml(project.goal || "-")}</p>
-        <p><strong>Level:</strong> ${escapeHtml(formatLabel(project.level))}</p>
-        <p><strong>Scope:</strong> ${escapeHtml(formatLabel(project.scope))}</p>
-        <p><strong>Estimated size:</strong> ${escapeHtml(project.estimatedSize || "-")}</p>
-      </div>
-
-      <div class="card">
-        <p>${escapeHtml(project.summary || "No project summary yet.")}</p>
-      </div>
-
-      <div class="card">
-        <p><strong>Suggested stack</strong></p>
-        <ul class="bullet-list">
-          ${stackHtml}
-        </ul>
-      </div>
-
-      <div class="card">
-        <p class="eyebrow">Current step</p>
-        <h2>${escapeHtml(currentStep.title)}</h2>
-        <p><strong>Summary:</strong> ${escapeHtml(currentStep.summary || "-")}</p>
-        <p><strong>Why this matters:</strong> ${escapeHtml(currentStep.whyItMatters || "-")}</p>
-      </div>
-
-      ${taskCardsHtml}
-
-      <div class="card">
-        <p class="eyebrow">Step verification</p>
-        <ul class="bullet-list">
-          ${verificationHtml}
-        </ul>
-      </div>
-
-      <div class="card">
-        <p class="eyebrow">Step outcome</p>
-        <p>${escapeHtml(currentStep.outcomeSummary || "-")}</p>
-      </div>
-
-      <div class="card">
-        <p class="eyebrow">Recommended commit</p>
-        ${renderCodeBlock({
-          label: "Commit message",
-          language: "text",
-          code: currentStep.commitMessage || "",
+        ${renderProgressSummary({
+          currentIndex,
+          totalSteps: steps.length,
+          currentStepTitle: currentStep.title,
+          currentStepSummary: currentStep.summary,
         })}
-      </div>
 
-      <button data-nav="${ROUTES.PROJECT_MAP}">Open Project Map</button>
-    </div>
-  `;
-}
+        <section class="card">
+          <p class="eyebrow">Project context</p>
+          <p><strong>Goal:</strong> ${escapeHtml(project.goal || "-")}</p>
+          <p><strong>Level:</strong> ${escapeHtml(formatLabel(project.level))}</p>
+          <p><strong>Scope:</strong> ${escapeHtml(formatLabel(project.scope))}</p>
+          <p><strong>Estimated size:</strong> ${escapeHtml(project.estimatedSize || "-")}</p>
+        </section>
 
-function renderTaskCard(task, index) {
-  const filesHtml = (task.files || [])
-    .map((file) => renderFileArtifact(file))
-    .join("");
+        <section class="card explanation-card">
+          <p class="eyebrow">AI explanation</p>
+          <p><strong>Why this step matters:</strong> ${escapeHtml(currentStep.whyItMatters || "-")}</p>
+          <p>${escapeHtml(project.summary || "No project summary yet.")}</p>
+        </section>
 
-  const terminalHtml = (task.terminal || [])
-    .map(
-      (item) => `
-        <div class="terminal-block">
-          <p><strong>${escapeHtml(item.label || "Command")}</strong></p>
-          ${renderCodeBlock({
-            label: item.label || "Command",
-            language: "bash",
-            code: item.command || "",
-          })}
-        </div>
-      `,
-    )
-    .join("");
+        <section class="card">
+          <p class="eyebrow">Suggested stack</p>
+          <ul class="bullet-list">
+            ${stackHtml}
+          </ul>
+        </section>
 
-  const commonMistakesHtml = (task.commonMistakes || [])
-    .map((item) => `<li>${escapeHtml(item)}</li>`)
-    .join("");
+        <section class="task-section">
+          <div class="section-heading">
+            <h2>Tasks</h2>
+            <p>${(currentStep.tasks || []).length} task(s) in this step</p>
+          </div>
 
-  return `
-    <div class="card task-card">
-      <div class="meta-row">
-        <span class="badge badge-neutral">Task ${index + 1}</span>
-        <span class="badge badge-status">${escapeHtml(formatTaskStatus(task.status))}</span>
-      </div>
-
-      <h3>${escapeHtml(task.title)}</h3>
-
-      <p><strong>What to do:</strong> ${escapeHtml(task.explanation || "-")}</p>
-      <p><strong>Why:</strong> ${escapeHtml(task.purpose || "-")}</p>
-      <p><strong>Definition of Done:</strong> ${escapeHtml(task.definitionOfDone || "-")}</p>
-      <p><strong>Expected result:</strong> ${escapeHtml(task.expectedResult || "-")}</p>
-
-      ${
-        commonMistakesHtml
-          ? `
-            <div>
-              <p><strong>Common mistakes</strong></p>
-              <ul class="bullet-list">
-                ${commonMistakesHtml}
-              </ul>
+          ${
+            taskCardsHtml ||
+            `
+            <div class="card">
+              <p>No tasks available for this step yet.</p>
             </div>
           `
-          : ""
-      }
+          }
+        </section>
 
-      ${filesHtml}
-      ${terminalHtml}
-    </div>
-  `;
-}
+        <section class="card">
+          <p class="eyebrow">How to verify this step</p>
+          <ul class="bullet-list">
+            ${verificationHtml}
+          </ul>
+        </section>
 
-function renderFileArtifact(file) {
-  return `
-    <div class="file-artifact">
-      <p><strong>File:</strong> ${escapeHtml(file.path || "-")}</p>
-      ${renderCodeBlock({
-        label: file.path || file.language || "Code",
-        language: file.language || "",
-        code: file.code || "",
-      })}
+        <section class="card">
+          <p class="eyebrow">Step outcome</p>
+          <p>${escapeHtml(currentStep.outcomeSummary || "-")}</p>
+        </section>
+
+        <section class="card">
+          <p class="eyebrow">Recommended commit</p>
+          ${renderCodeBlock({
+            label: "Commit message",
+            language: "text",
+            code: currentStep.commitMessage || "",
+          })}
+        </section>
+      </div>
+
+      <div class="bottom-action-bar">
+        <div class="bottom-action-bar__content">
+          <div>
+            <p class="bottom-action-bar__label">Current step</p>
+            <p class="bottom-action-bar__title">${escapeHtml(currentStep.title)}</p>
+          </div>
+
+          <button class="secondary-button" data-nav="${ROUTES.PROJECT_MAP}">
+            Open Map
+          </button>
+        </div>
+      </div>
     </div>
   `;
 }
