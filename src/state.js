@@ -17,6 +17,8 @@ export function createInitialState() {
       errors: {},
       notice: "",
       expandedStepIds: [],
+      aiInput: "",
+      aiReply: null,
     },
   };
 }

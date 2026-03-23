@@ -36,6 +36,8 @@ function hydrateAppState() {
         errors: {},
         notice: "",
         expandedStepIds: [],
+        aiInput: "",
+        aiReply: null,
         ...(savedState.ui || {}),
       },
     });

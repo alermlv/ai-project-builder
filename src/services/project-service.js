@@ -129,3 +129,44 @@ export function getCompletedTaskCount(step) {
 
   return step.tasks.filter((task) => task.status === "completed").length;
 }
+
+export function getCurrentTask(step) {
+  if (!step || !Array.isArray(step.tasks)) {
+    return null;
+  }
+
+  return step.tasks.find((task) => task.status !== "completed") || null;
+}
+
+export function buildCurrentTaskContext(project) {
+  const currentStep = getCurrentStep(project);
+  const currentTask = getCurrentTask(currentStep);
+
+  if (!project || !currentStep || !currentTask) {
+    return null;
+  }
+
+  return {
+    project: {
+      title: project.title || "",
+      goal: project.goal || "",
+      level: project.level || "",
+      scope: project.scope || "",
+    },
+    currentStep: {
+      id: currentStep.id || "",
+      title: currentStep.title || "",
+      summary: currentStep.summary || "",
+      whyItMatters: currentStep.whyItMatters || "",
+    },
+    currentTask: {
+      id: currentTask.id || "",
+      title: currentTask.title || "",
+      explanation: currentTask.explanation || "",
+      purpose: currentTask.purpose || "",
+      definitionOfDone: currentTask.definitionOfDone || "",
+      expectedResult: currentTask.expectedResult || "",
+      files: Array.isArray(currentTask.files) ? currentTask.files : [],
+    },
+  };
+}

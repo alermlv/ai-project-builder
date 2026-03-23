@@ -79,3 +79,40 @@ export async function requestProjectPlan({ entry, recommendation }) {
 
   return payload.data;
 }
+
+export async function requestStepIntent({ message, context }) {
+  let response;
+
+  try {
+    response = await fetch("http://localhost:3000/api/step-intent", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message,
+        context,
+      }),
+    });
+  } catch (error) {
+    throw new Error("Could not connect to the AI help server.");
+  }
+
+  let payload;
+
+  try {
+    payload = await response.json();
+  } catch (error) {
+    throw new Error("Server returned an invalid AI reply.");
+  }
+
+  if (!response.ok) {
+    throw new Error(payload.error || "Failed to get AI help.");
+  }
+
+  if (!payload.data) {
+    throw new Error("AI reply data is missing.");
+  }
+
+  return payload.data;
+}

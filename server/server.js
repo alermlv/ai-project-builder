@@ -1,6 +1,7 @@
 import http from "http";
 import { generateProjectRecommendation } from "./recommendation-engine.js";
 import { generateProjectPlan } from "./plan-engine.js";
+import { handleStepIntent } from "./intent-engine.js";
 
 const PORT = 3000;
 
@@ -70,6 +71,38 @@ const server = http.createServer(async (req, res) => {
       return;
     } catch (error) {
       console.error("Failed to handle /api/generate-plan:", error);
+
+      sendJson(res, 500, {
+        error: "Internal server error",
+      });
+      return;
+    }
+  }
+
+  if (req.method === "POST" && req.url === "/api/step-intent") {
+    try {
+      const body = await readJsonBody(req);
+      const validationError = validateStepIntentInput(body);
+
+      if (validationError) {
+        sendJson(res, 400, {
+          error: validationError,
+        });
+        return;
+      }
+
+      const reply = handleStepIntent({
+        message: body.message,
+        context: body.context,
+      });
+
+      sendJson(res, 200, {
+        success: true,
+        data: reply,
+      });
+      return;
+    } catch (error) {
+      console.error("Failed to handle /api/step-intent:", error);
 
       sendJson(res, 500, {
         error: "Internal server error",
@@ -159,6 +192,29 @@ function validateGeneratePlanInput(body) {
 
   if (!body.entry.scope || typeof body.entry.scope !== "string") {
     return "Field 'entry.scope' is required.";
+  }
+
+  return null;
+}
+
+function validateStepIntentInput(body) {
+  if (!body.message || typeof body.message !== "object") {
+    return "Field 'message' is required.";
+  }
+
+  if (!body.message.text || typeof body.message.text !== "string") {
+    return "Field 'message.text' is required.";
+  }
+
+  if (!body.context || typeof body.context !== "object") {
+    return "Field 'context' is required.";
+  }
+
+  if (
+    !body.context.currentTask ||
+    typeof body.context.currentTask !== "object"
+  ) {
+    return "Field 'context.currentTask' is required.";
   }
 
   return null;

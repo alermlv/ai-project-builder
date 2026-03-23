@@ -460,3 +460,44 @@ input {
 .card--planned-step {
   border: 1px solid rgba(148, 163, 184, 0.12);
 }
+
+.screen-body--with-ai-bar {
+  padding-bottom: 160px;
+}
+
+.ai-action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.96);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+  padding: 12px 16px;
+  z-index: 30;
+}
+
+.ai-action-bar__content {
+  max-width: 480px;
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.ai-action-bar__textarea {
+  flex: 1;
+  min-height: 72px;
+  max-height: 160px;
+  resize: vertical;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: #1e293b;
+  color: #fff;
+  font: inherit;
+}
+
+.ai-reply-card {
+  border: 1px solid rgba(96, 165, 250, 0.22);
+}

@@ -10,10 +10,12 @@ import {
   getCompletedTaskCount,
   getCurrentStep,
   getCurrentStepIndex,
+  buildCurrentTaskContext,
 } from "../services/project-service.js";
+import { requestStepIntent } from "../services/ai.js";
 
 export function renderCurrentStep() {
-  const { project } = getState();
+  const { project, ui } = getState();
 
   if (!project) {
     return `
@@ -39,7 +41,7 @@ export function renderCurrentStep() {
           rightActionRoute: ROUTES.PROJECT_MAP,
         })}
 
-        <div class="screen-body">
+        <div class="screen-body screen-body--with-ai-bar">
           <section class="card">
             <p class="eyebrow">Done</p>
             <h2>Project completed</h2>
@@ -57,7 +59,26 @@ export function renderCurrentStep() {
             <p><strong>Summary:</strong> ${escapeHtml(project.summary || "-")}</p>
           </section>
 
+          ${renderAiReply(ui.aiReply)}
+
           <button data-nav="${ROUTES.PROJECT_MAP}">Open Project Map</button>
+        </div>
+
+        <div class="ai-action-bar">
+          <div class="ai-action-bar__content">
+            <textarea
+              id="aiStepInput"
+              class="ai-action-bar__textarea"
+              ${ui.isLoading ? "disabled" : ""}
+            >${escapeHtml(ui.aiInput || "")}</textarea>
+
+            <button
+              id="askAiBtn"
+              ${ui.isLoading ? "disabled" : ""}
+            >
+              ${ui.isLoading ? "Asking..." : "Ask AI"}
+            </button>
+          </div>
         </div>
       </div>
     `;
@@ -120,7 +141,7 @@ export function renderCurrentStep() {
         rightActionRoute: ROUTES.PROJECT_MAP,
       })}
 
-      <div class="screen-body">
+      <div class="screen-body screen-body--with-ai-bar">
         ${sourceNote}
 
         ${renderProgressSummary({
@@ -192,26 +213,215 @@ export function renderCurrentStep() {
             code: currentStep.commitMessage || "",
           })}
         </section>
+
+        ${renderAiReply(ui.aiReply)}
+      </div>
+
+      <div class="ai-action-bar">
+        <div class="ai-action-bar__content">
+          <textarea
+            id="aiStepInput"
+            class="ai-action-bar__textarea"
+            ${ui.isLoading ? "disabled" : ""}
+          >${escapeHtml(ui.aiInput || "")}</textarea>
+
+          <button
+            id="askAiBtn"
+            ${ui.isLoading ? "disabled" : ""}
+          >
+            ${ui.isLoading ? "Asking..." : "Ask AI"}
+          </button>
+        </div>
       </div>
     </div>
   `;
 }
 
-document.addEventListener("click", (e) => {
+function renderAiReply(aiReply) {
+  if (!aiReply) {
+    return "";
+  }
+
+  if (aiReply.intent === "question") {
+    const explanationHtml = (aiReply.body?.explanation || [])
+      .map((item) => `<li>${escapeHtml(item)}</li>`)
+      .join("");
+
+    return `
+      <section class="card ai-reply-card">
+        <p class="eyebrow">AI reply</p>
+        <h2>${escapeHtml(aiReply.title || "Explanation")}</h2>
+        <p>${escapeHtml(aiReply.body?.summary || "-")}</p>
+
+        <ul class="bullet-list">
+          ${explanationHtml}
+        </ul>
+
+        ${
+          aiReply.body?.codeReference
+            ? renderCodeBlock({
+                label: aiReply.body.codeReference.label || "Relevant code",
+                language: aiReply.body.codeReference.language || "javascript",
+                code: aiReply.body.codeReference.code || "",
+              })
+            : ""
+        }
+      </section>
+    `;
+  }
+
+  if (aiReply.intent === "problem") {
+    return `
+      <section class="card ai-reply-card">
+        <p class="eyebrow">AI reply</p>
+        <h2>${escapeHtml(aiReply.title || "Fix")}</h2>
+        <p><strong>Why the error happened:</strong> ${escapeHtml(aiReply.body?.cause || "-")}</p>
+
+        ${
+          aiReply.body?.fixedCode
+            ? renderCodeBlock({
+                label: aiReply.body.fixedCode.label || "Correct code",
+                language: aiReply.body.fixedCode.language || "javascript",
+                code: aiReply.body.fixedCode.code || "",
+              })
+            : ""
+        }
+      </section>
+    `;
+  }
+
+  if (aiReply.intent === "system") {
+    return `
+      <section class="card ai-reply-card">
+        <p class="eyebrow">AI reply</p>
+        <h2>${escapeHtml(aiReply.title || "Notice")}</h2>
+        <p>${escapeHtml(aiReply.body?.summary || "No AI response available.")}</p>
+      </section>
+    `;
+  }
+
+  return `
+    <section class="card ai-reply-card">
+      <p class="eyebrow">AI reply</p>
+      <h2>Notice</h2>
+      <p>No AI response available.</p>
+    </section>
+  `;
+}
+
+document.addEventListener("click", async (e) => {
   const taskId = e.target.dataset.completeTask;
 
-  if (!taskId) {
+  if (taskId) {
+    const { project } = getState();
+
+    if (!project || project.status === "completed") {
+      return;
+    }
+
+    commitState((state) => ({
+      ...state,
+      project: completeTaskInProject(state.project, taskId),
+      ui: {
+        ...state.ui,
+        aiReply: null,
+      },
+    }));
+
     return;
   }
 
-  const { project } = getState();
+  if (e.target.id !== "askAiBtn") {
+    return;
+  }
 
-  if (!project || project.status === "completed") {
+  const { project, ui } = getState();
+
+  if (!project || ui.isLoading) {
+    return;
+  }
+
+  const input = document.getElementById("aiStepInput");
+  const text = String(input?.value || "").trim();
+
+  if (!text) {
+    commitState((state) => ({
+      ...state,
+      ui: {
+        ...state.ui,
+        aiReply: {
+          intent: "system",
+          title: "Empty message",
+          body: {
+            summary: "Write a question or a console error before asking AI.",
+          },
+        },
+      },
+    }));
+    return;
+  }
+
+  const context = buildCurrentTaskContext(project);
+
+  if (!context) {
+    commitState((state) => ({
+      ...state,
+      ui: {
+        ...state.ui,
+        aiReply: {
+          intent: "system",
+          title: "No current task available",
+          body: {
+            summary:
+              "AI help is only available when the current step has an active task.",
+          },
+        },
+      },
+    }));
     return;
   }
 
   commitState((state) => ({
     ...state,
-    project: completeTaskInProject(state.project, taskId),
+    ui: {
+      ...state.ui,
+      isLoading: true,
+      aiInput: text,
+      aiReply: null,
+    },
   }));
+
+  try {
+    const reply = await requestStepIntent({
+      message: {
+        text,
+      },
+      context,
+    });
+
+    commitState((state) => ({
+      ...state,
+      ui: {
+        ...state.ui,
+        isLoading: false,
+        aiReply: reply,
+      },
+    }));
+  } catch (error) {
+    commitState((state) => ({
+      ...state,
+      ui: {
+        ...state.ui,
+        isLoading: false,
+        aiReply: {
+          intent: "system",
+          title: "AI help failed",
+          body: {
+            summary:
+              error.message || "Could not get AI help for the current task.",
+          },
+        },
+      },
+    }));
+  }
 });
