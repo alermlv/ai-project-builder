@@ -16,6 +16,7 @@ export function createInitialState() {
       isLoading: false,
       errors: {},
       notice: "",
+      expandedStepIds: [],
     },
   };
 }

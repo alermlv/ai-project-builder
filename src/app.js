@@ -35,6 +35,7 @@ function hydrateAppState() {
         isLoading: false,
         errors: {},
         notice: "",
+        expandedStepIds: [],
         ...(savedState.ui || {}),
       },
     });

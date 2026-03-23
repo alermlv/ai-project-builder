@@ -394,3 +394,69 @@ input {
 .card--completed-step {
   border: 1px solid rgba(34, 197, 94, 0.22);
 }
+
+.map-step-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.map-step-card {
+  gap: 12px;
+}
+
+.map-step-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.map-step-card__content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.map-step-card__title {
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.map-step-card__toggle {
+  align-self: flex-start;
+}
+
+.map-step-card__stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.map-inline-panel {
+  background: rgba(15, 23, 42, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.map-task-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  list-style: none;
+}
+
+.map-task-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.map-task-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.card--planned-step {
+  border: 1px solid rgba(148, 163, 184, 0.12);
+}
