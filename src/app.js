@@ -38,9 +38,11 @@ function hydrateAppState() {
         expandedStepIds: [],
         aiInput: "",
         aiReply: null,
+        isMenuOpen: false,
         ...(savedState.ui || {}),
       },
     });
+
     return;
   }
 
@@ -71,6 +73,28 @@ function setupGlobalEvents() {
       return;
     }
 
+    if (target.dataset.openMenu === "true") {
+      commitState((state) => ({
+        ...state,
+        ui: {
+          ...state.ui,
+          isMenuOpen: true,
+        },
+      }));
+      return;
+    }
+
+    if (target.dataset.closeMenu === "true") {
+      commitState((state) => ({
+        ...state,
+        ui: {
+          ...state.ui,
+          isMenuOpen: false,
+        },
+      }));
+      return;
+    }
+
     if (target.dataset.nav) {
       const route = target.dataset.nav;
 
@@ -81,8 +105,10 @@ function setupGlobalEvents() {
           ...state.ui,
           errors: {},
           notice: "",
+          isMenuOpen: false,
         },
       }));
+      return;
     }
 
     if (target.dataset.back === "entry-goal") {
@@ -93,8 +119,10 @@ function setupGlobalEvents() {
           ...state.ui,
           errors: {},
           notice: "",
+          isMenuOpen: false,
         },
       }));
+      return;
     }
 
     if (target.dataset.back === "entry-level") {
@@ -105,8 +133,10 @@ function setupGlobalEvents() {
           ...state.ui,
           errors: {},
           notice: "",
+          isMenuOpen: false,
         },
       }));
+      return;
     }
 
     if (target.dataset.back === "entry-scope") {
@@ -117,8 +147,10 @@ function setupGlobalEvents() {
           ...state.ui,
           errors: {},
           notice: "",
+          isMenuOpen: false,
         },
       }));
+      return;
     }
 
     if (target.dataset.back === "recommendation") {
@@ -129,6 +161,7 @@ function setupGlobalEvents() {
           ...state.ui,
           errors: {},
           notice: "",
+          isMenuOpen: false,
         },
       }));
     }

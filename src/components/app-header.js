@@ -8,9 +8,19 @@ export function renderAppHeader({
 }) {
   return `
     <header class="app-header">
-      <div class="app-header__left">
-        <p class="app-header__eyebrow">${escapeHtml(subtitle || "Current project")}</p>
-        <h1 class="app-header__title">${escapeHtml(title || "AI Project Builder")}</h1>
+      <div class="app-header__left-group">
+        <button
+          type="button"
+          class="app-header__menu-button secondary-button"
+          data-open-menu="true"
+        >
+          Menu
+        </button>
+
+        <div class="app-header__left">
+          <p class="app-header__eyebrow">${escapeHtml(subtitle || "Current project")}</p>
+          <h1 class="app-header__title">${escapeHtml(title || "AI Project Builder")}</h1>
+        </div>
       </div>
 
       ${

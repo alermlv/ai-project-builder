@@ -6,6 +6,7 @@ import {
   formatTaskStatus,
 } from "../utils/formatters.js";
 import { renderAppHeader } from "../components/app-header.js";
+import { renderSideMenu } from "../components/side-menu.js";
 import { getCompletedTaskCount } from "../services/project-service.js";
 
 export function renderProjectMap() {
@@ -55,6 +56,11 @@ export function renderProjectMap() {
 
   return `
     <div class="screen screen--with-fixed-header">
+      ${renderSideMenu({
+        projectTitle: project.title,
+        isOpen: ui.isMenuOpen,
+      })}
+
       ${renderAppHeader({
         title: project.title,
         subtitle: "Project map",

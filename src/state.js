@@ -19,6 +19,7 @@ export function createInitialState() {
       expandedStepIds: [],
       aiInput: "",
       aiReply: null,
+      isMenuOpen: false,
     },
   };
 }

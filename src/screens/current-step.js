@@ -1,6 +1,7 @@
 import { getState, commitState } from "../state.js";
 import { ROUTES } from "../utils/routes.js";
 import { escapeHtml, formatLabel } from "../utils/formatters.js";
+import { renderSideMenu } from "../components/side-menu.js";
 import { renderCodeBlock } from "../utils/code-block.js";
 import { renderAppHeader } from "../components/app-header.js";
 import { renderProgressSummary } from "../components/progress-summary.js";
@@ -37,6 +38,10 @@ export function renderCurrentStep() {
   if (project.status === "completed") {
     return `
       <div class="screen screen--with-fixed-header">
+        ${renderSideMenu({
+          projectTitle: project.title,
+          isOpen: ui.isMenuOpen,
+        })}
         ${renderAppHeader({
           title: project.title,
           subtitle: "Project completed",
@@ -138,6 +143,10 @@ export function renderCurrentStep() {
 
   return `
     <div class="screen screen--with-fixed-header">
+      ${renderSideMenu({
+        projectTitle: project.title,
+        isOpen: ui.isMenuOpen,
+      })}
       ${renderAppHeader({
         title: project.title,
         subtitle: "Current project",
