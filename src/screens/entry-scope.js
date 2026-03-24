@@ -3,26 +3,29 @@ import { ROUTES } from "../utils/routes.js";
 import { requestProjectRecommendation } from "../services/ai.js";
 import { buildFallbackRecommendation } from "../services/recommendation-fallback.js";
 
+const DEMO_SCOPE = "small";
+
 const SCOPE_OPTIONS = [
-  { value: "small", label: "Small project" },
-  { value: "medium", label: "Medium project" },
-  { value: "large", label: "Large project" },
+  { value: "small", label: "Small project", isEnabled: true },
+  { value: "medium", label: "Medium project", isEnabled: false },
+  { value: "large", label: "Large project", isEnabled: false },
 ];
 
 export function renderEntryScope() {
-  const { entry, ui } = getState();
+  const { ui } = getState();
   const error = ui?.errors?.scope || "";
   const isLoading = ui?.isLoading;
 
   const optionsHtml = SCOPE_OPTIONS.map((option) => {
-    const isSelected = entry.scope === option.value;
+    const isSelected = option.value === DEMO_SCOPE;
+    const isDisabled = !option.isEnabled;
 
     return `
       <button
-        class="option-card ${isSelected ? "is-selected" : ""}"
+        class="option-card ${isSelected ? "is-selected" : ""} ${isDisabled ? "is-disabled" : ""}"
         data-scope="${option.value}"
         type="button"
-        ${isLoading ? "disabled" : ""}
+        ${isLoading || isDisabled ? "disabled" : ""}
       >
         ${option.label}
       </button>
@@ -34,7 +37,7 @@ export function renderEntryScope() {
       <h1>What project size do you want?</h1>
 
       <div class="card">
-        <p>Choose the scope so AI can suggest the right project size.</p>
+        <p>Demo mode is currently locked to the small project path.</p>
       </div>
 
       <div class="option-list">
@@ -58,12 +61,12 @@ export function renderEntryScope() {
 document.addEventListener("click", async (e) => {
   const scope = e.target.dataset.scope;
 
-  if (scope) {
+  if (scope === DEMO_SCOPE) {
     commitState((state) => ({
       ...state,
       entry: {
         ...state.entry,
-        scope,
+        scope: DEMO_SCOPE,
       },
       ui: {
         ...state.ui,
@@ -86,22 +89,12 @@ document.addEventListener("click", async (e) => {
     return;
   }
 
-  if (!entry.scope) {
-    commitState((state) => ({
-      ...state,
-      ui: {
-        ...state.ui,
-        errors: {
-          ...state.ui.errors,
-          scope: "Please choose a project size.",
-        },
-      },
-    }));
-    return;
-  }
-
   commitState((state) => ({
     ...state,
+    entry: {
+      ...state.entry,
+      scope: DEMO_SCOPE,
+    },
     ui: {
       ...state.ui,
       isLoading: true,
@@ -112,13 +105,17 @@ document.addEventListener("click", async (e) => {
 
   try {
     const recommendation = await requestProjectRecommendation({
-      goal: entry.goal,
-      level: entry.level,
-      scope: entry.scope,
+      goal: entry.goal || "Build a simple counter",
+      level: entry.level || "beginner",
+      scope: DEMO_SCOPE,
     });
 
     commitState((state) => ({
       ...state,
+      entry: {
+        ...state.entry,
+        scope: DEMO_SCOPE,
+      },
       recommendation,
       route: ROUTES.RECOMMENDATION,
       ui: {
@@ -130,13 +127,17 @@ document.addEventListener("click", async (e) => {
     }));
   } catch (error) {
     const fallbackRecommendation = buildFallbackRecommendation({
-      goal: entry.goal,
-      level: entry.level,
-      scope: entry.scope,
+      goal: entry.goal || "Build a simple counter",
+      level: entry.level || "beginner",
+      scope: DEMO_SCOPE,
     });
 
     commitState((state) => ({
       ...state,
+      entry: {
+        ...state.entry,
+        scope: DEMO_SCOPE,
+      },
       recommendation: fallbackRecommendation,
       route: ROUTES.RECOMMENDATION,
       ui: {

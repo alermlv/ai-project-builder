@@ -1,8 +1,10 @@
 import { commitState, getState } from "../state.js";
 import { ROUTES } from "../utils/routes.js";
 
+const DEMO_GOAL = "Build a simple counter";
+
 export function renderEntryGoal() {
-  const { entry, ui } = getState();
+  const { ui } = getState();
   const error = ui?.errors?.goal || "";
 
   return `
@@ -10,14 +12,19 @@ export function renderEntryGoal() {
       <h1>What do you want to learn?</h1>
 
       <div class="card">
-        <p>Describe the kind of project you want AI to guide you through.</p>
+        <p>This is a demo version of the app.</p>
+        <p>Only the demo project flow is available right now.</p>
       </div>
 
-      <input
-        id="goalInput"
-        placeholder="e.g. Build a SaaS landing page"
-        value="${escapeHtml(entry.goal || "")}"
-      />
+      <div class="card">
+        <p>Demo goal</p>
+        <input
+          id="goalInput"
+          placeholder="e.g. Build a SaaS landing page"
+          value="${escapeHtml(DEMO_GOAL)}"
+          readonly
+        />
+      </div>
 
       ${error ? `<p class="error-text">${error}</p>` : ""}
 
@@ -31,28 +38,11 @@ document.addEventListener("click", (e) => {
     return;
   }
 
-  const input = document.getElementById("goalInput");
-  const goal = input?.value?.trim() || "";
-
-  if (!goal) {
-    commitState((state) => ({
-      ...state,
-      ui: {
-        ...state.ui,
-        errors: {
-          ...state.ui.errors,
-          goal: "Please enter what you want to learn.",
-        },
-      },
-    }));
-    return;
-  }
-
   commitState((state) => ({
     ...state,
     entry: {
       ...state.entry,
-      goal,
+      goal: DEMO_GOAL,
     },
     route: ROUTES.ENTRY_LEVEL,
     ui: {
@@ -63,7 +53,7 @@ document.addEventListener("click", (e) => {
 });
 
 function escapeHtml(value) {
-  return value
+  return String(value ?? "")
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")

@@ -501,3 +501,14 @@ input {
 .ai-reply-card {
   border: 1px solid rgba(96, 165, 250, 0.22);
 }
+
+.option-card.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: rgba(148, 163, 184, 0.18);
+  background: rgba(30, 41, 59, 0.7);
+}
+
+.option-card.is-disabled:hover {
+  transform: none;
+}

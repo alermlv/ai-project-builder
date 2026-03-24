@@ -1,24 +1,28 @@
 import { commitState, getState } from "../state.js";
 import { ROUTES } from "../utils/routes.js";
 
+const DEMO_LEVEL = "beginner";
+
 const LEVEL_OPTIONS = [
-  { value: "beginner", label: "Beginner" },
-  { value: "intermediate", label: "Intermediate" },
-  { value: "advanced", label: "Advanced" },
+  { value: "beginner", label: "Beginner", isEnabled: true },
+  { value: "intermediate", label: "Intermediate", isEnabled: false },
+  { value: "advanced", label: "Advanced", isEnabled: false },
 ];
 
 export function renderEntryLevel() {
-  const { entry, ui } = getState();
+  const { ui } = getState();
   const error = ui?.errors?.level || "";
 
   const optionsHtml = LEVEL_OPTIONS.map((option) => {
-    const isSelected = entry.level === option.value;
+    const isSelected = option.value === DEMO_LEVEL;
+    const isDisabled = !option.isEnabled;
 
     return `
       <button
-        class="option-card ${isSelected ? "is-selected" : ""}"
+        class="option-card ${isSelected ? "is-selected" : ""} ${isDisabled ? "is-disabled" : ""}"
         data-level="${option.value}"
         type="button"
+        ${isDisabled ? "disabled" : ""}
       >
         ${option.label}
       </button>
@@ -30,7 +34,7 @@ export function renderEntryLevel() {
       <h1>What is your current level?</h1>
 
       <div class="card">
-        <p>Pick the level that best matches your current confidence.</p>
+        <p>Demo mode is currently locked to the beginner path.</p>
       </div>
 
       <div class="option-list">
@@ -50,12 +54,12 @@ export function renderEntryLevel() {
 document.addEventListener("click", (e) => {
   const level = e.target.dataset.level;
 
-  if (level) {
+  if (level === DEMO_LEVEL) {
     commitState((state) => ({
       ...state,
       entry: {
         ...state.entry,
-        level,
+        level: DEMO_LEVEL,
       },
       ui: {
         ...state.ui,
@@ -72,24 +76,12 @@ document.addEventListener("click", (e) => {
     return;
   }
 
-  const { entry } = getState();
-
-  if (!entry.level) {
-    commitState((state) => ({
-      ...state,
-      ui: {
-        ...state.ui,
-        errors: {
-          ...state.ui.errors,
-          level: "Please choose your level.",
-        },
-      },
-    }));
-    return;
-  }
-
   commitState((state) => ({
     ...state,
+    entry: {
+      ...state.entry,
+      level: DEMO_LEVEL,
+    },
     route: ROUTES.ENTRY_SCOPE,
     ui: {
       ...state.ui,

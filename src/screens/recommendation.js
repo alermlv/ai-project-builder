@@ -1,10 +1,6 @@
 import { commitState, getState } from "../state.js";
 import { ROUTES } from "../utils/routes.js";
-import {
-  requestProjectRecommendation,
-  requestProjectPlan,
-} from "../services/ai.js";
-import { buildFallbackRecommendation } from "../services/recommendation-fallback.js";
+import { requestProjectPlan } from "../services/ai.js";
 import { buildProjectFromServerPlan } from "../services/project-service.js";
 import { formatLabel, escapeHtml } from "../utils/formatters.js";
 
@@ -97,9 +93,13 @@ export function renderRecommendation() {
         <p><strong>Estimated size:</strong> ${escapeHtml(recommendation.estimatedSize || "-")}</p>
       </div>
 
+      <div class="card">
+        <p>Recommendation refresh is disabled in demo mode.</p>
+      </div>
+
       <div class="button-row">
-        <button class="secondary-button" id="retryRecommendationBtn" ${isLoading ? "disabled" : ""}>
-          ${isLoading ? "Refreshing..." : "Refresh recommendation"}
+        <button class="secondary-button" id="retryRecommendationBtn" disabled>
+          Refresh unavailable
         </button>
         <button id="startProjectBtn" ${isLoading ? "disabled" : ""}>
           ${isLoading ? "Generating plan..." : "Start project"}
@@ -115,60 +115,6 @@ export function renderRecommendation() {
 
 document.addEventListener("click", async (e) => {
   if (e.target.id === "retryRecommendationBtn") {
-    const { entry, ui } = getState();
-
-    if (ui.isLoading) {
-      return;
-    }
-
-    commitState((state) => ({
-      ...state,
-      ui: {
-        ...state.ui,
-        isLoading: true,
-        errors: {},
-        notice: "",
-      },
-    }));
-
-    try {
-      const recommendation = await requestProjectRecommendation({
-        goal: entry.goal,
-        level: entry.level,
-        scope: entry.scope,
-      });
-
-      commitState((state) => ({
-        ...state,
-        recommendation,
-        ui: {
-          ...state.ui,
-          isLoading: false,
-          errors: {},
-          notice: "",
-        },
-      }));
-    } catch (error) {
-      const fallbackRecommendation = buildFallbackRecommendation({
-        goal: entry.goal,
-        level: entry.level,
-        scope: entry.scope,
-      });
-
-      commitState((state) => ({
-        ...state,
-        recommendation: fallbackRecommendation,
-        ui: {
-          ...state.ui,
-          isLoading: false,
-          errors: {},
-          notice:
-            error.message ||
-            "Could not refresh from server, so fallback data was used.",
-        },
-      }));
-    }
-
     return;
   }
 
