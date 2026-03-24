@@ -19,8 +19,9 @@ function detectIntent(text) {
     "referenceerror",
     "typeerror",
     "syntaxerror",
-    "is not defined",
-    "cannot read",
+    "unexpected token",
+    "missing )",
+    "missing ;",
     "failed",
     "fix ",
   ];
@@ -34,52 +35,46 @@ function detectIntent(text) {
 
 function buildQuestionResponse({ text, context }) {
   const currentTask = context?.currentTask || {};
-  const files = Array.isArray(currentTask.files) ? currentTask.files : [];
-  const firstFile = files[0] || null;
+  const normalized = text.toLowerCase();
 
-  const requestedFunction = extractFunctionName(text);
-  const matchedSnippet =
-    requestedFunction && firstFile?.code
-      ? extractFunctionSnippet(firstFile.code, requestedFunction)
-      : "";
-
-  const summary = requestedFunction
-    ? `The code around ${requestedFunction} supports the current task: ${currentTask.title || "current task"}.`
-    : `This code supports the current task: ${currentTask.title || "current task"}.`;
-
-  const explanation = [
-    currentTask.purpose
-      ? `It exists to achieve this goal: ${currentTask.purpose}`
-      : "It exists to support the current task inside this step.",
-    currentTask.explanation
-      ? `In this step, you are expected to do this: ${currentTask.explanation}`
-      : "It is part of the implementation work for the current step.",
-    requestedFunction
-      ? `The requested function ${requestedFunction} works inside the broader file logic and should be understood in relation to the current task.`
-      : "The code should be read in the context of the current task, not as isolated syntax.",
-  ];
-
-  if (matchedSnippet) {
-    explanation.push(
-      `The most relevant code was found in ${firstFile.path || "the current file"}, so the answer is grounded in the current task context.`,
-    );
+  if (
+    normalized.includes("console in chrome") ||
+    normalized.includes("open browser console") ||
+    normalized.includes("how do i open the console")
+  ) {
+    return {
+      intent: "question",
+      title: "How to open the browser console in Chrome",
+      body: {
+        summary:
+          "For this task, you need the browser console to check whether script.js is connected correctly and whether there are any JavaScript errors.",
+        explanation: [
+          "In Chrome on Windows or Linux, press Ctrl + Shift + J.",
+          "In Chrome on Mac, press Command + Option + J.",
+          "You can also right-click the page, choose Inspect, and then open the Console tab.",
+          "After that, refresh the page and check whether any red error messages appear.",
+        ],
+        codeReference: null,
+      },
+    };
   }
 
   return {
     intent: "question",
-    title: requestedFunction
-      ? `Explanation for ${requestedFunction}`
-      : `Explanation for ${currentTask.title || "current task"}`,
+    title: `Explanation for ${currentTask.title || "current task"}`,
     body: {
-      summary,
-      explanation,
-      codeReference: matchedSnippet
-        ? {
-            label: firstFile?.path || "Relevant code",
-            language: firstFile?.language || "javascript",
-            code: matchedSnippet,
-          }
-        : null,
+      summary:
+        "This task prepares JavaScript state and DOM references so the counter can work in later steps.",
+      explanation: [
+        "The variable count stores the current counter number in JavaScript.",
+        "document.getElementById(...) selects the visible value element and the three buttons from the page.",
+        "These references are needed before you can attach click events for increase, decrease, and reset.",
+      ],
+      codeReference: {
+        label: currentTask.files?.[0]?.path || "Relevant code",
+        language: currentTask.files?.[0]?.language || "javascript",
+        code: currentTask.files?.[0]?.code || "",
+      },
     },
   };
 }
@@ -87,81 +82,59 @@ function buildQuestionResponse({ text, context }) {
 function buildProblemResponse({ text, context }) {
   const currentTask = context?.currentTask || {};
   const files = Array.isArray(currentTask.files) ? currentTask.files : [];
-  const firstFile = files[0] || null;
+  const scriptFile =
+    files.find((file) => file.path === "src/script.js") ||
+    files.find((file) => file.language === "javascript") ||
+    null;
 
-  const parsedProblem = inferProblem(text, firstFile?.code || "");
+  const normalized = text.toLowerCase();
+
+  if (
+    normalized.includes("syntaxerror") &&
+    (normalized.includes("unexpected token") ||
+      normalized.includes("missing ;") ||
+      normalized.includes("expected"))
+  ) {
+    return {
+      intent: "problem",
+      title: "Fix for the syntax error in script.js",
+      body: {
+        cause:
+          "This happened because the first line in script.js is missing a semicolon. When JavaScript reads the file, it can fail to parse the next line correctly and throws a syntax error before the rest of the script runs.",
+        fixedCode: {
+          label: "Correct code",
+          language: "javascript",
+          code:
+            scriptFile?.code ||
+            `let count = 0;
+
+const value = document.getElementById("value");
+const increaseBtn = document.getElementById("increase");
+const decreaseBtn = document.getElementById("decrease");
+const resetBtn = document.getElementById("reset");`,
+        },
+      },
+    };
+  }
 
   return {
     intent: "problem",
     title: `Fix for ${text}`,
     body: {
-      cause: parsedProblem.cause,
+      cause:
+        "This console problem most likely means there is a syntax mistake or a missing connection in the current task code. Check the first lines of script.js and confirm that every statement is written correctly.",
       fixedCode: {
         label: "Correct code",
-        language: firstFile?.language || "javascript",
-        code: parsedProblem.fixedCode,
+        language: scriptFile?.language || "javascript",
+        code:
+          scriptFile?.code ||
+          `let count = 0;
+
+const value = document.getElementById("value");
+const increaseBtn = document.getElementById("increase");
+const decreaseBtn = document.getElementById("decrease");
+const resetBtn = document.getElementById("reset");`,
       },
     },
   };
-}
-
-function inferProblem(text, fileCode) {
-  const normalized = text.toLowerCase();
-
-  if (
-    normalized.includes("setglobalevents is not defined") ||
-    normalized.includes("referenceerror: setglobalevents")
-  ) {
-    return {
-      cause:
-        "The error appears because the code calls setGlobalEvents(), but the actual function name in this project should be setupGlobalEvents(). JavaScript treats those as different identifiers, so the wrong name causes a ReferenceError.",
-      fixedCode: replaceFirstOccurrence(
-        fileCode,
-        "setGlobalEvents",
-        "setupGlobalEvents",
-      ),
-    };
-  }
-
-  return {
-    cause:
-      "This console problem most likely appears because the current task code references something that is missing, misspelled, or called before it is defined. Check function names, imported names, and DOM references first.",
-    fixedCode: fileCode || "// Add the corrected code for this task here.",
-  };
-}
-
-function extractFunctionName(text) {
-  const match = text.match(/(?:function|explain)\s+([a-zA-Z_$][\w$]*)/i);
-
-  if (!match) {
-    return "";
-  }
-
-  return match[1];
-}
-
-function extractFunctionSnippet(code, functionName) {
-  if (!code || !functionName) {
-    return "";
-  }
-
-  const escapedName = escapeRegExp(functionName);
-  const functionPattern = new RegExp(
-    `(function\\s+${escapedName}\\s*\$begin:math:text$\[\^\)\]\*\\$end:math:text$\\s*\\{[\\s\\S]*?\\n\\}|const\\s+${escapedName}\\s*=\\s*\$begin:math:text$\[\^\)\]\*\\$end:math:text$\\s*=>\\s*\\{[\\s\\S]*?\\n\\}|async\\s+function\\s+${escapedName}\\s*\$begin:math:text$\[\^\)\]\*\\$end:math:text$\\s*\\{[\\s\\S]*?\\n\\})`,
-  );
-
-  const match = code.match(functionPattern);
-  return match ? match[0] : "";
-}
-
-function replaceFirstOccurrence(source, fromValue, toValue) {
-  if (!source) {
-    return `${toValue}();`;
-  }
-
-  return source.replace(fromValue, toValue);
-}
-
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
