@@ -63,12 +63,12 @@ export function generateProjectPlan() {
     summary: "Start with only the base HTML document",
     whyItMatters:
       "A beginner should first understand the minimum HTML structure before adding app content",
-    status: "current",
+    status: "completed",
     tasks: [
       createTask({
         id: "task_1",
         title: "Write the base HTML document",
-        status: "current",
+        status: "completed",
         explanation:
           "Create index.html with only the basic HTML5 structure, page title, and empty body",
         purpose: "To learn the minimum structure every HTML page needs",
@@ -97,7 +97,7 @@ export function generateProjectPlan() {
       createTask({
         id: "task_2",
         title: "Create style.css and connect it",
-        status: "planned",
+        status: "completed",
         explanation:
           "Create an empty style.css file and link it inside index.html",
         purpose:
@@ -148,12 +148,12 @@ styling in the next steps.`,
     summary: "Show the first visible content and style the page body",
     whyItMatters:
       "Beginners learn better when they add one visible element at a time and immediately see the result",
-    status: "planned",
+    status: "completed",
     tasks: [
       createTask({
         id: "task_3",
         title: "Add the heading",
-        status: "planned",
+        status: "completed",
         explanation:
           "Write an h1 element with the text Counter inside the body",
         purpose: "To place the first visible app element on the page",
@@ -181,7 +181,7 @@ styling in the next steps.`,
       createTask({
         id: "task_4",
         title: "Write styles for body",
-        status: "planned",
+        status: "completed",
         explanation:
           "Add very simple body styles: font, text alignment, and top margin",
         purpose: "To make the page easier to read with minimal CSS",
@@ -224,12 +224,12 @@ to make the page readable for further UI work.`,
     summary: "Create the value display and style it separately",
     whyItMatters:
       "The value display is the core output of the counter and should be built before the controls",
-    status: "planned",
+    status: "completed",
     tasks: [
       createTask({
         id: "task_5",
         title: "Add the value element",
-        status: "planned",
+        status: "completed",
         explanation: "Write a div with id value and set its initial text to 0",
         purpose:
           "To create a clear place where JavaScript will later show the counter number",
@@ -259,7 +259,7 @@ to make the page readable for further UI work.`,
       createTask({
         id: "task_6",
         title: "Write styles for the value element",
-        status: "planned",
+        status: "completed",
         explanation:
           "Add font size and margin for the value so it is easy to notice",
         purpose: "To visually separate the counter number from the heading",
@@ -304,12 +304,12 @@ main visual output of the app.`,
     summary: "Create the control buttons and style them",
     whyItMatters:
       "The learner now builds the controls that will later trigger JavaScript actions",
-    status: "planned",
+    status: "completed",
     tasks: [
       createTask({
         id: "task_7",
         title: "Add three buttons",
-        status: "planned",
+        status: "completed",
         explanation:
           "Write decrease, reset, and increase buttons under the value element",
         purpose: "To create the controls for changing the counter",
@@ -343,7 +343,7 @@ main visual output of the app.`,
       createTask({
         id: "task_8",
         title: "Write styles for buttons",
-        status: "planned",
+        status: "completed",
         explanation: "Add font size, padding, and margin for all buttons",
         purpose: "To make the controls easier to click and read",
         definitionOfDone: "All buttons have simple readable spacing and size",
@@ -395,12 +395,12 @@ margin to keep the interface clear and easy to use.`,
     summary: "Create the script file and prepare DOM references",
     whyItMatters:
       "Before adding behavior, the project needs a connected script and selected elements",
-    status: "planned",
+    status: "current",
     tasks: [
       createTask({
         id: "task_9",
         title: "Create counter variable and select elements",
-        status: "planned",
+        status: "current",
         explanation:
           "Create script.js, connect it in index.html, add a count variable, and select the value and button elements",
         purpose:
@@ -754,7 +754,7 @@ properly so the final beginner project remains stable and easy to study.`,
     recommendationSource: "server",
     isFallbackRecommendation: false,
     status: "active",
-    currentStepId: step1.id,
+    currentStepId: step5.id,
     steps: [step1, step2, step3, step4, step5, step6, step7, step8, step9],
   };
 }

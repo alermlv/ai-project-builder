@@ -14,6 +14,9 @@ import {
 } from "../services/project-service.js";
 import { requestStepIntent } from "../services/ai.js";
 
+const DEMO_AI_INPUT =
+  "Uncaught SyntaxError: Unexpected token 'const' in script.js";
+
 export function renderCurrentStep() {
   const { project, ui } = getState();
 
@@ -69,8 +72,9 @@ export function renderCurrentStep() {
             <textarea
               id="aiStepInput"
               class="ai-action-bar__textarea"
-              ${ui.isLoading ? "disabled" : ""}
-            >${escapeHtml(ui.aiInput || "")}</textarea>
+              disabled
+              readonly
+            >${escapeHtml(DEMO_AI_INPUT)}</textarea>
 
             <button
               id="askAiBtn"
@@ -222,8 +226,9 @@ export function renderCurrentStep() {
           <textarea
             id="aiStepInput"
             class="ai-action-bar__textarea"
-            ${ui.isLoading ? "disabled" : ""}
-          >${escapeHtml(ui.aiInput || "")}</textarea>
+            disabled
+            readonly
+          >${escapeHtml(DEMO_AI_INPUT)}</textarea>
 
           <button
             id="askAiBtn"
@@ -341,8 +346,7 @@ document.addEventListener("click", async (e) => {
     return;
   }
 
-  const input = document.getElementById("aiStepInput");
-  const text = String(input?.value || "").trim();
+  const text = DEMO_AI_INPUT.trim();
 
   if (!text) {
     commitState((state) => ({
@@ -368,6 +372,7 @@ document.addEventListener("click", async (e) => {
       ...state,
       ui: {
         ...state.ui,
+        aiInput: text,
         aiReply: {
           intent: "system",
           title: "No current task available",
