@@ -65,8 +65,12 @@ function handleStateChange(nextState) {
 }
 
 function setupGlobalEvents() {
-  document.addEventListener("click", async (e) => {
-    const target = e.target;
+  document.addEventListener("click", async (event) => {
+    const target = event.target;
+
+    if (!(target instanceof HTMLElement)) {
+      return;
+    }
 
     if (target.dataset.copyCode) {
       await handleCopyCode(target);
@@ -74,98 +78,72 @@ function setupGlobalEvents() {
     }
 
     if (target.dataset.openMenu === "true") {
-      commitState((state) => ({
-        ...state,
-        ui: {
-          ...state.ui,
-          isMenuOpen: true,
-        },
-      }));
+      openMenu();
       return;
     }
 
     if (target.dataset.closeMenu === "true") {
-      commitState((state) => ({
-        ...state,
-        ui: {
-          ...state.ui,
-          isMenuOpen: false,
-        },
-      }));
+      closeMenu();
       return;
     }
 
     if (target.dataset.nav) {
-      const route = target.dataset.nav;
-
-      commitState((state) => ({
-        ...state,
-        route,
-        ui: {
-          ...state.ui,
-          errors: {},
-          notice: "",
-          isMenuOpen: false,
-        },
-      }));
+      navigateTo(target.dataset.nav);
       return;
     }
 
     if (target.dataset.back === "entry-goal") {
-      commitState((state) => ({
-        ...state,
-        route: ROUTES.ENTRY_GOAL,
-        ui: {
-          ...state.ui,
-          errors: {},
-          notice: "",
-          isMenuOpen: false,
-        },
-      }));
+      navigateTo(ROUTES.ENTRY_GOAL);
       return;
     }
 
     if (target.dataset.back === "entry-level") {
-      commitState((state) => ({
-        ...state,
-        route: ROUTES.ENTRY_LEVEL,
-        ui: {
-          ...state.ui,
-          errors: {},
-          notice: "",
-          isMenuOpen: false,
-        },
-      }));
+      navigateTo(ROUTES.ENTRY_LEVEL);
       return;
     }
 
     if (target.dataset.back === "entry-scope") {
-      commitState((state) => ({
-        ...state,
-        route: ROUTES.ENTRY_SCOPE,
-        ui: {
-          ...state.ui,
-          errors: {},
-          notice: "",
-          isMenuOpen: false,
-        },
-      }));
+      navigateTo(ROUTES.ENTRY_SCOPE);
       return;
     }
 
     if (target.dataset.back === "recommendation") {
-      commitState((state) => ({
-        ...state,
-        route: ROUTES.RECOMMENDATION,
-        ui: {
-          ...state.ui,
-          errors: {},
-          notice: "",
-          isMenuOpen: false,
-        },
-      }));
+      navigateTo(ROUTES.RECOMMENDATION);
     }
   });
+}
+
+function navigateTo(route) {
+  commitState((state) => ({
+    ...state,
+    route,
+    ui: {
+      ...state.ui,
+      errors: {},
+      notice: "",
+      isMenuOpen: false,
+    },
+  }));
+}
+
+function openMenu() {
+  commitState((state) => ({
+    ...state,
+    ui: {
+      ...state.ui,
+      isMenuOpen: true,
+    },
+  }));
+}
+
+function closeMenu() {
+  commitState((state) => ({
+    ...state,
+    ui: {
+      ...state.ui,
+      isMenuOpen: false,
+    },
+  }));
 }
 
 async function handleCopyCode(button) {
