@@ -4,7 +4,19 @@ import { escapeHtml, formatLabel } from "../utils/formatters.js";
 import { renderAppHeader } from "../components/app-header.js";
 import { renderSideMenu } from "../components/side-menu.js";
 import { renderMapStepCard } from "../components/map-step-card.js";
-import { getCompletedTaskCount } from "../services/project-service.js";
+import { renderAiReplyCard } from "../components/ai-reply-card.js";
+import { renderAiActionBar } from "../components/ai-action-bar.js";
+import {
+  getCompletedTaskCount,
+  buildCurrentTaskContext,
+} from "../services/project-service.js";
+
+const DEMO_AI_INPUTS = {
+  task_9: "How to open the browser console in Chrome?",
+  task_10: "Uncaught SyntaxError: Unexpected identifier 'value' in script.js",
+};
+
+const MAP_AI_INPUT = "How to open the browser console in Chrome?";
 
 export function renderProjectMap() {
   const { project, ui } = getState();
@@ -27,6 +39,9 @@ export function renderProjectMap() {
   const expandedStepIds = Array.isArray(ui?.expandedStepIds)
     ? ui.expandedStepIds
     : [];
+
+  const context = buildCurrentTaskContext(project);
+  const demoAiInput = getMapAiInput(context?.currentTask);
 
   const stepsHtml = steps
     .map((step, index) => {
@@ -65,7 +80,7 @@ export function renderProjectMap() {
         rightActionRoute: ROUTES.CURRENT_STEP,
       })}
 
-      <div class="screen-body">
+      <div class="screen-body screen-body--with-ai-bar">
         <div class="card notice-card">
           <p><strong>Note:</strong> In this demo, only steps 5 and 6 are available.</p>
         </div>
@@ -80,9 +95,25 @@ export function renderProjectMap() {
         <section class="map-step-list">
           ${stepsHtml}
         </section>
+
+        ${renderAiReplyCard(ui.aiReply)}
       </div>
+
+      ${renderAiActionBar({
+        value: demoAiInput,
+        isLoading: false,
+        isDisabled: true,
+      })}
     </div>
   `;
+}
+
+function getMapAiInput(currentTask) {
+  if (!currentTask?.id) {
+    return MAP_AI_INPUT;
+  }
+
+  return DEMO_AI_INPUTS[currentTask.id] || MAP_AI_INPUT;
 }
 
 document.addEventListener("click", (e) => {

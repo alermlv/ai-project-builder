@@ -1,6 +1,12 @@
 import { escapeHtml } from "../utils/formatters.js";
 
-export function renderAiActionBar({ value = "", isLoading = false }) {
+export function renderAiActionBar({
+  value = "",
+  isLoading = false,
+  isDisabled = false,
+}) {
+  const isButtonDisabled = isLoading || isDisabled;
+
   return `
     <div class="ai-action-bar">
       <div class="ai-action-bar__content">
@@ -13,7 +19,7 @@ export function renderAiActionBar({ value = "", isLoading = false }) {
 
         <button
           id="askAiBtn"
-          ${isLoading ? "disabled" : ""}
+          ${isButtonDisabled ? "disabled" : ""}
         >
           ${isLoading ? "Loading..." : "Ask AI"}
         </button>

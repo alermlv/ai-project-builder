@@ -22,6 +22,9 @@ const DEMO_AI_INPUTS = {
   task_10: "Uncaught SyntaxError: Unexpected identifier 'value' in script.js",
 };
 
+const COMPLETED_AI_INPUT =
+  "Demo AI help is available only while step 5 or step 6 is active.";
+
 export function renderCurrentStep() {
   const { project, ui } = getState();
 
@@ -130,6 +133,7 @@ export function renderCurrentStep() {
       ${renderAiActionBar({
         value: demoAiInput,
         isLoading: ui.isLoading,
+        isDisabled: false,
       })}
     </div>
   `;
@@ -162,8 +166,16 @@ function renderCompletedProjectScreen(project, ui) {
           <p><strong>Summary:</strong> ${escapeHtml(project.summary || "-")}</p>
         </section>
 
+        ${renderAiReplyCard(ui.aiReply)}
+
         <button data-nav="${ROUTES.PROJECT_MAP}">Open Project Map</button>
       </div>
+
+      ${renderAiActionBar({
+        value: COMPLETED_AI_INPUT,
+        isLoading: false,
+        isDisabled: true,
+      })}
     </div>
   `;
 }
@@ -204,12 +216,14 @@ document.addEventListener("click", async (e) => {
 
   const { project, ui } = getState();
 
-  if (!project || ui.isLoading) {
+  if (!project || ui.isLoading || project.status === "completed") {
     return;
   }
 
   const context = buildCurrentTaskContext(project);
-  const text = getDemoAiInput(context?.currentTask).trim();
+  const text = context
+    ? getDemoAiInput(context.currentTask).trim()
+    : COMPLETED_AI_INPUT;
 
   if (!text) {
     commitState((state) => ({
