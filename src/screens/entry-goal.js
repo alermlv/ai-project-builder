@@ -11,10 +11,8 @@ export function renderEntryGoal() {
     <div class="screen">
       <h1>What do you want to learn?</h1>
 
-      <div class="card">
-        <p>This is a demo version of the app.</p>
-        <p>Only the demo counter project is available right now.</p>
-        <p>In this demo, only steps 5 and 6 are active.</p>
+      <div class="card notice-card">
+        <p><strong>Note:</strong> This is a demo. Press the Continue button.</p>
       </div>
 
       <input

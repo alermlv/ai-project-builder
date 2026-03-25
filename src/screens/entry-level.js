@@ -33,8 +33,8 @@ export function renderEntryLevel() {
     <div class="screen">
       <h1>What is your current level?</h1>
 
-      <div class="card">
-        <p>Demo mode is currently locked to the beginner path.</p>
+      <div class="card notice-card">
+        <p><strong>Note:</strong> The demo is currently locked to a beginner path.</p>
       </div>
 
       <div class="option-list">

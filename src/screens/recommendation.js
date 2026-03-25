@@ -2,12 +2,11 @@ import { commitState, getState } from "../state.js";
 import { ROUTES } from "../utils/routes.js";
 import { requestProjectPlan } from "../services/ai.js";
 import { buildProjectFromServerPlan } from "../services/project-service.js";
-import { formatLabel, escapeHtml } from "../utils/formatters.js";
+import { escapeHtml } from "../utils/formatters.js";
 
 export function renderRecommendation() {
-  const { entry, recommendation, ui } = getState();
+  const { recommendation, ui } = getState();
   const error = ui?.errors?.recommendation || "";
-  const notice = ui?.notice || "";
   const isLoading = ui?.isLoading;
 
   if (!recommendation) {
@@ -24,40 +23,9 @@ export function renderRecommendation() {
     `;
   }
 
-  const stackHtml = (recommendation.stack || [])
-    .map((item) => `<li>${escapeHtml(item)}</li>`)
-    .join("");
-
-  const skillsHtml = (recommendation.skills || [])
-    .map((item) => `<li>${escapeHtml(item)}</li>`)
-    .join("");
-
-  const recommendationBadge = recommendation.isFallback
-    ? `<span class="badge badge-warning">Fallback recommendation</span>`
-    : `<span class="badge badge-success">Server recommendation</span>`;
-
   return `
     <div class="screen">
       <h1>Recommended project</h1>
-
-      <div class="card">
-        <div class="meta-row">
-          ${recommendationBadge}
-        </div>
-        <p><strong>Goal:</strong> ${escapeHtml(entry.goal || "-")}</p>
-        <p><strong>Level:</strong> ${escapeHtml(formatLabel(entry.level))}</p>
-        <p><strong>Scope:</strong> ${escapeHtml(formatLabel(entry.scope))}</p>
-      </div>
-
-      ${
-        notice
-          ? `
-        <div class="card notice-card">
-          <p><strong>Note:</strong> ${escapeHtml(notice)}</p>
-        </div>
-      `
-          : ""
-      }
 
       ${
         error
@@ -69,44 +37,19 @@ export function renderRecommendation() {
           : ""
       }
 
+      <div class="card notice-card">
+        <p><strong>Note:</strong> The demo is currently locked to a simple counter project. </p>
+      </div>
+
       <div class="card recommendation-hero">
-        <p class="eyebrow">Project title</p>
+        <p class="eyebrow">Project</p>
         <h2>${escapeHtml(recommendation.title)}</h2>
         <p>${escapeHtml(recommendation.summary)}</p>
       </div>
 
-      <div class="card">
-        <p><strong>Suggested stack</strong></p>
-        <ul class="bullet-list">
-          ${stackHtml}
-        </ul>
-      </div>
-
-      <div class="card">
-        <p><strong>Skills practiced</strong></p>
-        <ul class="bullet-list">
-          ${skillsHtml}
-        </ul>
-      </div>
-
-      <div class="card">
-        <p><strong>Estimated size:</strong> ${escapeHtml(recommendation.estimatedSize || "-")}</p>
-      </div>
-
-      <div class="card">
-        <p>This demo only unlocks step_5 and step_6 as active guided steps.</p>
-      </div>
-
-      <div class="card">
-        <p>Recommendation refresh is disabled in demo mode.</p>
-      </div>
-
       <div class="button-row">
-        <button class="secondary-button" id="retryRecommendationBtn" disabled>
-          Refresh unavailable
-        </button>
         <button id="startProjectBtn" ${isLoading ? "disabled" : ""}>
-          ${isLoading ? "Generating plan..." : "Start project"}
+          ${isLoading ? "Starting..." : "Start"}
         </button>
       </div>
 
@@ -118,10 +61,6 @@ export function renderRecommendation() {
 }
 
 document.addEventListener("click", async (e) => {
-  if (e.target.id === "retryRecommendationBtn") {
-    return;
-  }
-
   if (e.target.id !== "startProjectBtn") {
     return;
   }
@@ -153,7 +92,6 @@ document.addEventListener("click", async (e) => {
       ...state.ui,
       isLoading: true,
       errors: {},
-      notice: "",
     },
   }));
 
@@ -173,7 +111,6 @@ document.addEventListener("click", async (e) => {
         ...state.ui,
         isLoading: false,
         errors: {},
-        notice: "",
       },
     }));
   } catch (error) {

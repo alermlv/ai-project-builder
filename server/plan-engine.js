@@ -287,18 +287,18 @@ value element so the learner can see immediate browser feedback.`,
 
   return {
     title: "Build a simple counter",
-    goal: "build a simple counter",
+    goal: "Build a simple counter",
     level: "beginner",
     scope: "small",
     summary:
-      "Create a simple counter web app step by step. In this demo, only step_5 and step_6 are available as active guided steps.",
+      "Create a simple counter web app step by step. In this demo, only steps 5 and 6 are available as active guided steps.",
     stack: ["HTML", "CSS", "JavaScript"],
     skills: [
       "Connect JavaScript to a page",
       "Select DOM elements with getElementById",
       "Add the first click event with addEventListener",
     ],
-    estimatedSize: "very small beginner project",
+    estimatedSize: "Small project",
     recommendationSource: "server",
     isFallbackRecommendation: false,
     status: "active",

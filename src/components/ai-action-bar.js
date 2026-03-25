@@ -15,7 +15,7 @@ export function renderAiActionBar({ value = "", isLoading = false }) {
           id="askAiBtn"
           ${isLoading ? "disabled" : ""}
         >
-          ${isLoading ? "Asking..." : "Ask AI"}
+          ${isLoading ? "Loading..." : "Ask AI"}
         </button>
       </div>
     </div>

@@ -66,12 +66,15 @@ export function renderProjectMap() {
       })}
 
       <div class="screen-body">
+        <div class="card notice-card">
+          <p><strong>Note:</strong> In this demo, only steps 5 and 6 are available.</p>
+        </div>
+
         <div class="card">
           <p><strong>Project:</strong> ${escapeHtml(project.title)}</p>
           <p><strong>Estimated size:</strong> ${escapeHtml(project.estimatedSize || "-")}</p>
           <p><strong>Total steps:</strong> ${steps.length}</p>
           <p><strong>Status:</strong> ${escapeHtml(formatLabel(project.status || "active"))}</p>
-          <p><strong>Demo:</strong> only step_5 and step_6 are active guided steps.</p>
         </div>
 
         <section class="map-step-list">

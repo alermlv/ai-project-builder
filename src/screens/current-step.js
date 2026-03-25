@@ -1,17 +1,12 @@
 import { getState, commitState } from "../state.js";
 import { ROUTES } from "../utils/routes.js";
-import { escapeHtml, formatLabel } from "../utils/formatters.js";
+import { escapeHtml } from "../utils/formatters.js";
 import { renderAppHeader } from "../components/app-header.js";
 import { renderProgressSummary } from "../components/progress-summary.js";
 import { renderTaskCard } from "../components/task-card.js";
 import { renderSideMenu } from "../components/side-menu.js";
 import { renderAiReplyCard } from "../components/ai-reply-card.js";
 import { renderAiActionBar } from "../components/ai-action-bar.js";
-import { renderProjectContextCard } from "../components/project-context-card.js";
-import { renderStepExplanationCard } from "../components/step-explanation-card.js";
-import { renderStepVerificationCard } from "../components/step-verification-card.js";
-import { renderStepOutcomeCard } from "../components/step-outcome-card.js";
-import { renderCommitCard } from "../components/commit-card.js";
 import {
   completeTaskInProject,
   getCompletedTaskCount,
@@ -82,18 +77,6 @@ export function renderCurrentStep() {
     .map((task, index) => renderTaskCard(task, index))
     .join("");
 
-  const stackHtml = (project.stack || [])
-    .map((item) => `<li>${escapeHtml(item)}</li>`)
-    .join("");
-
-  const sourceNote = project.isFallbackRecommendation
-    ? `
-      <div class="card notice-card">
-        <p><strong>Note:</strong> This project was started from a fallback recommendation.</p>
-      </div>
-    `
-    : "";
-
   return `
     <div class="screen screen--with-fixed-header">
       ${renderSideMenu({
@@ -109,10 +92,8 @@ export function renderCurrentStep() {
       })}
 
       <div class="screen-body screen-body--with-ai-bar">
-        ${sourceNote}
-
         <section class="card notice-card">
-          <p><strong>Demo mode:</strong> only step_5 and step_6 are active in this demo.</p>
+          <p><strong>Note:</strong> In this demo, only steps 5 and 6 are available.</p>
         </section>
 
         ${renderProgressSummary({
@@ -121,20 +102,6 @@ export function renderCurrentStep() {
           currentStepTitle: currentStep.title,
           currentStepSummary: currentStep.summary,
         })}
-
-        ${renderProjectContextCard(project)}
-
-        ${renderStepExplanationCard({
-          currentStep,
-          project,
-        })}
-
-        <section class="card">
-          <p class="eyebrow">Suggested stack</p>
-          <ul class="bullet-list">
-            ${stackHtml}
-          </ul>
-        </section>
 
         <section class="card progress-inline-card">
           <p class="eyebrow">Task progress</p>
@@ -151,17 +118,11 @@ export function renderCurrentStep() {
             taskCardsHtml ||
             `
             <div class="card">
-              <p>No tasks available for this step yet.</p>
+              <p>No active task. This step is part of demo flow.</p>
             </div>
           `
           }
         </section>
-
-        ${renderStepVerificationCard(currentStep.verificationSteps || [])}
-
-        ${renderStepOutcomeCard(currentStep.outcomeSummary || "")}
-
-        ${renderCommitCard(currentStep.commitMessage || "")}
 
         ${renderAiReplyCard(ui.aiReply)}
       </div>
@@ -196,13 +157,10 @@ function renderCompletedProjectScreen(project, ui) {
           <p>You completed all demo steps in this guided project.</p>
         </section>
 
-        ${renderProjectContextCard(project)}
-
         <section class="card">
+          <p><strong>Project:</strong> ${escapeHtml(project.title || "-")}</p>
           <p><strong>Summary:</strong> ${escapeHtml(project.summary || "-")}</p>
         </section>
-
-        ${renderAiReplyCard(ui.aiReply)}
 
         <button data-nav="${ROUTES.PROJECT_MAP}">Open Project Map</button>
       </div>
