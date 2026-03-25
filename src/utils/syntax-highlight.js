@@ -31,10 +31,7 @@ function highlightJavaScript(code) {
   let html = escapeHtml(code);
 
   html = wrapStrings(html);
-  html = wrapComments(html, [
-    /(&#047;&#047;.*?$)/gm,
-    /(&#047;\*[\s\S]*?\*&#047;)/g,
-  ]);
+  html = wrapSingleLineComments(html);
   html = wrapKeywords(html, [
     "import",
     "from",
@@ -72,33 +69,30 @@ function highlightJavaScript(code) {
     "replaceAll",
     "setTimeout",
     "writeText",
+    "getElementById",
+    "addEventListener",
+    "textContent",
   ]);
 
   return html;
 }
 
 function highlightHtml(code) {
-  let html = escapeHtml(code);
-
-  html = html.replace(
-    /(&lt;\/?)([a-zA-Z][\w-]*)([^&]*?)(\/?&gt;)/g,
-    (_, open, tagName, attrs, close) => {
-      const highlightedAttrs = attrs.replace(
+  return escapeHtml(code).replace(
+    /(&lt;\/?)([a-zA-Z][\w-]*)([\s\S]*?)(\/?&gt;)/g,
+    (_, open, tagName, attributes, close) => {
+      const highlightedAttributes = attributes.replace(
         /([a-zA-Z:-]+)=(&quot;.*?&quot;|&#039;.*?&#039;)/g,
         '<span class="token-attr">$1</span>=<span class="token-string">$2</span>',
       );
 
-      return `${open}<span class="token-tag">${tagName}</span>${highlightedAttrs}${close}`;
+      return `${open}<span class="token-tag">${tagName}</span>${highlightedAttributes}${close}`;
     },
   );
-
-  return html;
 }
 
 function highlightCss(code) {
   let html = escapeHtml(code);
-
-  html = wrapComments(html, [/\/\*[\s\S]*?\*\//g]);
 
   html = html.replace(
     /([.#]?[a-zA-Z][\w\-:\s>#.*[\]"=()]+)\s*(\{)/g,
@@ -118,7 +112,7 @@ function highlightCss(code) {
 function highlightBash(code) {
   let html = escapeHtml(code);
 
-  html = wrapComments(html, [/(#.*$)/gm]);
+  html = html.replace(/(#.*$)/gm, '<span class="token-comment">$1</span>');
   html = wrapKeywords(html, ["npm", "node", "cd", "mkdir", "touch", "git"]);
   html = wrapStrings(html);
   html = wrapNumbers(html);
@@ -133,14 +127,8 @@ function wrapStrings(html) {
   );
 }
 
-function wrapComments(html, patterns) {
-  let output = html;
-
-  for (const pattern of patterns) {
-    output = output.replace(pattern, '<span class="token-comment">$1</span>');
-  }
-
-  return output;
+function wrapSingleLineComments(html) {
+  return html.replace(/(\/\/.*$)/gm, '<span class="token-comment">$1</span>');
 }
 
 function wrapKeywords(html, keywords) {

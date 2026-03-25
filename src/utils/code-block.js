@@ -2,9 +2,9 @@ import { escapeHtml } from "./formatters.js";
 import { highlightCode } from "./syntax-highlight.js";
 
 export function renderCodeBlock({ code = "", label = "", language = "" }) {
-  const safeCode = String(code);
-  const encodedCode = encodeURIComponent(safeCode);
-  const highlightedCode = highlightCode(safeCode, language);
+  const sourceCode = String(code ?? "");
+  const encodedCode = encodeURIComponent(sourceCode);
+  const highlightedCode = highlightCode(sourceCode, language);
 
   return `
     <div class="code-block-wrapper">
