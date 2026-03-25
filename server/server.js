@@ -3,7 +3,7 @@ import { generateProjectRecommendation } from "./recommendation-engine.js";
 import { generateProjectPlan } from "./plan-engine.js";
 import { handleStepIntent } from "./intent-engine.js";
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 const server = http.createServer(async (req, res) => {
   setCorsHeaders(res);

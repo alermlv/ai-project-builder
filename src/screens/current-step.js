@@ -1,22 +1,25 @@
 import { getState, commitState } from "../state.js";
 import { ROUTES } from "../utils/routes.js";
 import { escapeHtml, formatLabel } from "../utils/formatters.js";
-import { renderSideMenu } from "../components/side-menu.js";
 import { renderCodeBlock } from "../utils/code-block.js";
 import { renderAppHeader } from "../components/app-header.js";
 import { renderProgressSummary } from "../components/progress-summary.js";
 import { renderTaskCard } from "../components/task-card.js";
+import { renderSideMenu } from "../components/side-menu.js";
 import {
   completeTaskInProject,
   getCompletedTaskCount,
   getCurrentStep,
   getCurrentStepIndex,
   buildCurrentTaskContext,
+  getCurrentTask,
 } from "../services/project-service.js";
 import { requestStepIntent } from "../services/ai.js";
 
-const DEMO_AI_INPUT =
-  "Uncaught SyntaxError: Unexpected token 'const' in script.js";
+const DEMO_AI_INPUTS = {
+  task_9: "How to open the browser console in Chrome?",
+  task_10: "Uncaught SyntaxError: Unexpected identifier 'value' in script.js",
+};
 
 export function renderCurrentStep() {
   const { project, ui } = getState();
@@ -42,6 +45,7 @@ export function renderCurrentStep() {
           projectTitle: project.title,
           isOpen: ui.isMenuOpen,
         })}
+
         ${renderAppHeader({
           title: project.title,
           subtitle: "Project completed",
@@ -53,7 +57,7 @@ export function renderCurrentStep() {
           <section class="card">
             <p class="eyebrow">Done</p>
             <h2>Project completed</h2>
-            <p>You completed all steps in this guided project.</p>
+            <p>You completed all demo steps in this guided project.</p>
           </section>
 
           <section class="card">
@@ -71,24 +75,6 @@ export function renderCurrentStep() {
 
           <button data-nav="${ROUTES.PROJECT_MAP}">Open Project Map</button>
         </div>
-
-        <div class="ai-action-bar">
-          <div class="ai-action-bar__content">
-            <textarea
-              id="aiStepInput"
-              class="ai-action-bar__textarea"
-              disabled
-              readonly
-            >${escapeHtml(DEMO_AI_INPUT)}</textarea>
-
-            <button
-              id="askAiBtn"
-              ${ui.isLoading ? "disabled" : ""}
-            >
-              ${ui.isLoading ? "Asking..." : "Ask AI"}
-            </button>
-          </div>
-        </div>
       </div>
     `;
   }
@@ -96,6 +82,8 @@ export function renderCurrentStep() {
   const steps = Array.isArray(project.steps) ? project.steps : [];
   const currentIndex = getCurrentStepIndex(project);
   const currentStep = getCurrentStep(project);
+  const currentTask = getCurrentTask(currentStep);
+  const demoAiInput = getDemoAiInput(currentTask);
 
   if (!currentStep || currentIndex < 0) {
     return `
@@ -147,6 +135,7 @@ export function renderCurrentStep() {
         projectTitle: project.title,
         isOpen: ui.isMenuOpen,
       })}
+
       ${renderAppHeader({
         title: project.title,
         subtitle: "Current project",
@@ -156,6 +145,10 @@ export function renderCurrentStep() {
 
       <div class="screen-body screen-body--with-ai-bar">
         ${sourceNote}
+
+        <section class="card notice-card">
+          <p><strong>Demo mode:</strong> only step_5 and step_6 are active in this demo.</p>
+        </section>
 
         ${renderProgressSummary({
           currentIndex,
@@ -237,7 +230,7 @@ export function renderCurrentStep() {
             class="ai-action-bar__textarea"
             disabled
             readonly
-          >${escapeHtml(DEMO_AI_INPUT)}</textarea>
+          >${escapeHtml(demoAiInput)}</textarea>
 
           <button
             id="askAiBtn"
@@ -249,6 +242,14 @@ export function renderCurrentStep() {
       </div>
     </div>
   `;
+}
+
+function getDemoAiInput(currentTask) {
+  if (!currentTask?.id) {
+    return "";
+  }
+
+  return DEMO_AI_INPUTS[currentTask.id] || "";
 }
 
 function renderAiReply(aiReply) {
@@ -355,7 +356,8 @@ document.addEventListener("click", async (e) => {
     return;
   }
 
-  const text = DEMO_AI_INPUT.trim();
+  const context = buildCurrentTaskContext(project);
+  const text = getDemoAiInput(context?.currentTask).trim();
 
   if (!text) {
     commitState((state) => ({
@@ -364,17 +366,16 @@ document.addEventListener("click", async (e) => {
         ...state.ui,
         aiReply: {
           intent: "system",
-          title: "Empty message",
+          title: "No demo input available",
           body: {
-            summary: "Write a question or a console error before asking AI.",
+            summary:
+              "This demo AI helper is only configured for step_5 and step_6.",
           },
         },
       },
     }));
     return;
   }
-
-  const context = buildCurrentTaskContext(project);
 
   if (!context) {
     commitState((state) => ({

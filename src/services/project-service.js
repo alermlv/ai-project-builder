@@ -16,6 +16,10 @@ export function buildProjectFromServerPlan(serverPlan) {
     status: serverPlan?.status || "active",
     currentStepId: serverPlan?.currentStepId || null,
     steps: Array.isArray(serverPlan?.steps) ? serverPlan.steps : [],
+    demoMode: Boolean(serverPlan?.demoMode),
+    demoAvailableStepIds: Array.isArray(serverPlan?.demoAvailableStepIds)
+      ? serverPlan.demoAvailableStepIds
+      : [],
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -95,29 +99,39 @@ export function completeTaskInProject(project, taskId) {
   let nextProjectStatus = project.status;
 
   if (areAllTasksCompleted) {
-    const nextStepIndex = currentStepIndex + 1;
-    const nextStep = updatedSteps[nextStepIndex];
+    const demoAvailableStepIds = Array.isArray(project.demoAvailableStepIds)
+      ? project.demoAvailableStepIds
+      : [];
 
-    if (nextStep) {
-      const normalizedNextTasks = Array.isArray(nextStep.tasks)
-        ? nextStep.tasks.map((task, index) => ({
-            ...task,
-            status:
-              task.status === "completed"
-                ? "completed"
-                : index === 0
-                  ? "current"
-                  : "planned",
-          }))
-        : [];
+    const nextStep = updatedSteps.find(
+      (step) =>
+        step.id !== currentStep.id &&
+        demoAvailableStepIds.includes(step.id) &&
+        step.status !== "completed",
+    );
 
-      updatedSteps[nextStepIndex] = {
-        ...nextStep,
-        status: "current",
-        tasks: normalizedNextTasks,
-      };
+    if (nextStep && nextStep.id === "step_6" && currentStep.id === "step_5") {
+      updatedSteps.forEach((step, index) => {
+        if (step.id === "step_6") {
+          updatedSteps[index] = {
+            ...step,
+            status: "current",
+            tasks: Array.isArray(step.tasks)
+              ? step.tasks.map((task, taskIndex) => ({
+                  ...task,
+                  status:
+                    task.status === "completed"
+                      ? "completed"
+                      : taskIndex === 0
+                        ? "current"
+                        : "planned",
+                }))
+              : [],
+          };
+        }
+      });
 
-      nextCurrentStepId = nextStep.id;
+      nextCurrentStepId = "step_6";
     } else {
       nextCurrentStepId = null;
       nextProjectStatus = "completed";

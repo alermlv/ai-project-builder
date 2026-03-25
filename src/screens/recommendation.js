@@ -94,6 +94,10 @@ export function renderRecommendation() {
       </div>
 
       <div class="card">
+        <p>This demo only unlocks step_5 and step_6 as active guided steps.</p>
+      </div>
+
+      <div class="card">
         <p>Recommendation refresh is disabled in demo mode.</p>
       </div>
 
