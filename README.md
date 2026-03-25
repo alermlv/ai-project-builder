@@ -3,28 +3,20 @@
 A mobile-first demo web app where AI guides the user through a small project step by step.
 
 This demo is intentionally narrow:
-- only one demo project is available
-- only **step 5** and **step 6** are active
-- the AI helper is configured only for the active demo tasks
+- Only one demo project is available
+- Only **step 5** and **step 6** are active
+- The AI helper is configured only for the active demo tasks
 
 ## What the demo shows
 
 The app demonstrates a guided learning flow:
 
-1. the user starts a demo project
-2. the app opens the current step
-3. the user completes the current task
-4. the app moves to the next step automatically
-5. the user can open the project map
-6. the user can use AI help for the active demo task
-
-## Demo project
-
-**Project:** Build a simple counter
-
-**Active demo steps:**
-- Step 5 — Connect JavaScript
-- Step 6 — Add increase behavior
+1. The user starts a demo project
+2. The app opens the current step
+3. The user completes the current task
+4. The app moves to the next step automatically
+5. The user can open the project map
+6. The user can use AI help for the active demo task
 
 ## Tech stack
 
@@ -38,7 +30,7 @@ The app demonstrates a guided learning flow:
 
 ### Server
 - Node.js
-- minimal AI proxy
+- Minimal AI proxy
 
 ## Project structure
 
@@ -104,11 +96,11 @@ export const API_BASE_URL = "http://localhost:3000";
 
 ## AI behavior
 
-### Step 5 (task_9)
+### Step 5 (Task 9)
 Question:
 - How to open the browser console in Chrome?
 
-### Step 6 (task_10)
+### Step 6 (Task 10)
 Problem:
 - Console syntax error scenario (missing semicolon / JS error)
 
@@ -140,6 +132,6 @@ export const API_BASE_URL = "https://your-backend-url"
 ## Purpose
 
 This project demonstrates how AI can guide users through:
-- structured learning
-- step-by-step coding
-- contextual debugging help
+- Structured learning
+- Step-by-step coding
+- Contextual debugging help
