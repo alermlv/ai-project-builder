@@ -8,14 +8,16 @@ export function buildProjectFromServerPlan(serverPlan) {
     level: serverPlan?.level || "",
     scope: serverPlan?.scope || "",
     summary: serverPlan?.summary || "",
-    stack: serverPlan?.stack || ["HTML", "CSS", "JavaScript"],
-    skills: serverPlan?.skills || [],
+    stack: Array.isArray(serverPlan?.stack)
+      ? serverPlan.stack
+      : ["HTML", "CSS", "JavaScript"],
+    skills: Array.isArray(serverPlan?.skills) ? serverPlan.skills : [],
     estimatedSize: serverPlan?.estimatedSize || "MVP",
     recommendationSource: serverPlan?.recommendationSource || "server",
     isFallbackRecommendation: Boolean(serverPlan?.isFallbackRecommendation),
     status: serverPlan?.status || "active",
     currentStepId: serverPlan?.currentStepId || null,
-    steps: Array.isArray(serverPlan?.steps) ? serverPlan.steps : [],
+    steps: normalizeSteps(serverPlan?.steps || []),
     demoMode: Boolean(serverPlan?.demoMode),
     demoAvailableStepIds: Array.isArray(serverPlan?.demoAvailableStepIds)
       ? serverPlan.demoAvailableStepIds
@@ -40,7 +42,7 @@ export function completeTaskInProject(project, taskId) {
 
   const currentStep = project.steps[currentStepIndex];
 
-  if (!Array.isArray(currentStep.tasks)) {
+  if (!Array.isArray(currentStep.tasks) || currentStep.tasks.length === 0) {
     return project;
   }
 
@@ -67,28 +69,14 @@ export function completeTaskInProject(project, taskId) {
     return project;
   }
 
-  const nextIncompleteTaskIndex = updatedTasks.findIndex(
-    (task) => task.status !== "completed",
-  );
-
-  const normalizedTasks = updatedTasks.map((task, index) => {
-    if (task.status === "completed") {
-      return task;
-    }
-
-    return {
-      ...task,
-      status: index === nextIncompleteTaskIndex ? "current" : "planned",
-    };
-  });
-
-  const areAllTasksCompleted = normalizedTasks.every(
+  const normalizedCurrentTasks = normalizeTaskStatuses(updatedTasks);
+  const areAllTasksCompleted = normalizedCurrentTasks.every(
     (task) => task.status === "completed",
   );
 
   const updatedCurrentStep = {
     ...currentStep,
-    tasks: normalizedTasks,
+    tasks: normalizedCurrentTasks,
     status: areAllTasksCompleted ? "completed" : "current",
   };
 
@@ -99,39 +87,22 @@ export function completeTaskInProject(project, taskId) {
   let nextProjectStatus = project.status;
 
   if (areAllTasksCompleted) {
-    const demoAvailableStepIds = Array.isArray(project.demoAvailableStepIds)
-      ? project.demoAvailableStepIds
-      : [];
-
-    const nextStep = updatedSteps.find(
-      (step) =>
-        step.id !== currentStep.id &&
-        demoAvailableStepIds.includes(step.id) &&
-        step.status !== "completed",
+    const nextStepIndex = findNextAvailableStepIndex(
+      project,
+      updatedSteps,
+      currentStepIndex,
     );
 
-    if (nextStep && nextStep.id === "step_6" && currentStep.id === "step_5") {
-      updatedSteps.forEach((step, index) => {
-        if (step.id === "step_6") {
-          updatedSteps[index] = {
-            ...step,
-            status: "current",
-            tasks: Array.isArray(step.tasks)
-              ? step.tasks.map((task, taskIndex) => ({
-                  ...task,
-                  status:
-                    task.status === "completed"
-                      ? "completed"
-                      : taskIndex === 0
-                        ? "current"
-                        : "planned",
-                }))
-              : [],
-          };
-        }
-      });
+    if (nextStepIndex >= 0) {
+      const nextStep = updatedSteps[nextStepIndex];
 
-      nextCurrentStepId = "step_6";
+      updatedSteps[nextStepIndex] = {
+        ...nextStep,
+        status: "current",
+        tasks: normalizeTaskStatuses(nextStep.tasks || []),
+      };
+
+      nextCurrentStepId = nextStep.id;
     } else {
       nextCurrentStepId = null;
       nextProjectStatus = "completed";
@@ -216,4 +187,90 @@ export function buildCurrentTaskContext(project) {
       files: Array.isArray(currentTask.files) ? currentTask.files : [],
     },
   };
+}
+
+function normalizeSteps(steps) {
+  return steps.map((step) => ({
+    ...step,
+    tasks: normalizeTasksForStep(step),
+  }));
+}
+
+function normalizeTasksForStep(step) {
+  const tasks = Array.isArray(step?.tasks) ? step.tasks : [];
+
+  if (tasks.length === 0) {
+    return [];
+  }
+
+  if (step?.status === "completed") {
+    return tasks.map((task) => ({
+      ...task,
+      status: task.status === "completed" ? "completed" : "completed",
+    }));
+  }
+
+  if (step?.status === "current") {
+    return normalizeTaskStatuses(tasks);
+  }
+
+  return tasks.map((task, index) => ({
+    ...task,
+    status:
+      task.status === "completed"
+        ? "completed"
+        : index === 0 && tasks.length === 1 && task.status === "current"
+          ? "current"
+          : "planned",
+  }));
+}
+
+function normalizeTaskStatuses(tasks) {
+  if (!Array.isArray(tasks) || tasks.length === 0) {
+    return [];
+  }
+
+  const firstIncompleteIndex = tasks.findIndex(
+    (task) => task.status !== "completed",
+  );
+
+  return tasks.map((task, index) => {
+    if (task.status === "completed") {
+      return {
+        ...task,
+        status: "completed",
+      };
+    }
+
+    return {
+      ...task,
+      status: index === firstIncompleteIndex ? "current" : "planned",
+    };
+  });
+}
+
+function findNextAvailableStepIndex(project, steps, currentStepIndex) {
+  const demoAvailableStepIds = Array.isArray(project?.demoAvailableStepIds)
+    ? project.demoAvailableStepIds
+    : [];
+
+  for (let index = currentStepIndex + 1; index < steps.length; index += 1) {
+    const step = steps[index];
+
+    if (!step || step.status === "completed") {
+      continue;
+    }
+
+    if (project?.demoMode) {
+      if (demoAvailableStepIds.includes(step.id)) {
+        return index;
+      }
+
+      continue;
+    }
+
+    return index;
+  }
+
+  return -1;
 }

@@ -1,35 +1,11 @@
+import { API_BASE_URL } from "../config.js";
+
 export async function requestProjectRecommendation({ goal, level, scope }) {
-  let response;
-
-  try {
-    response = await fetch("http://localhost:3000/api/recommend-project", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        goal,
-        level,
-        scope,
-      }),
-    });
-  } catch (error) {
-    throw new Error("Could not connect to the recommendation server.");
-  }
-
-  let payload;
-
-  try {
-    payload = await response.json();
-  } catch (error) {
-    throw new Error("Server returned an invalid JSON response.");
-  }
-
-  if (!response.ok) {
-    throw new Error(
-      payload.error || "Failed to get recommendation from server.",
-    );
-  }
+  const payload = await postJson("/api/recommend-project", {
+    goal,
+    level,
+    scope,
+  });
 
   if (!payload.data) {
     throw new Error("Recommendation data is missing in the server response.");
@@ -44,34 +20,10 @@ export async function requestProjectRecommendation({ goal, level, scope }) {
 }
 
 export async function requestProjectPlan({ entry, recommendation }) {
-  let response;
-
-  try {
-    response = await fetch("http://localhost:3000/api/generate-plan", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        entry,
-        recommendation,
-      }),
-    });
-  } catch (error) {
-    throw new Error("Could not connect to the plan generation server.");
-  }
-
-  let payload;
-
-  try {
-    payload = await response.json();
-  } catch (error) {
-    throw new Error("Server returned an invalid JSON plan response.");
-  }
-
-  if (!response.ok) {
-    throw new Error(payload.error || "Failed to generate project plan.");
-  }
+  const payload = await postJson("/api/generate-plan", {
+    entry,
+    recommendation,
+  });
 
   if (!payload.data) {
     throw new Error("Project plan data is missing in the server response.");
@@ -81,21 +33,31 @@ export async function requestProjectPlan({ entry, recommendation }) {
 }
 
 export async function requestStepIntent({ message, context }) {
+  const payload = await postJson("/api/step-intent", {
+    message,
+    context,
+  });
+
+  if (!payload.data) {
+    throw new Error("AI reply data is missing.");
+  }
+
+  return payload.data;
+}
+
+async function postJson(path, body) {
   let response;
 
   try {
-    response = await fetch("http://localhost:3000/api/step-intent", {
+    response = await fetch(`${API_BASE_URL}${path}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        message,
-        context,
-      }),
+      body: JSON.stringify(body),
     });
   } catch (error) {
-    throw new Error("Could not connect to the AI help server.");
+    throw new Error(getNetworkErrorMessage(path));
   }
 
   let payload;
@@ -103,16 +65,28 @@ export async function requestStepIntent({ message, context }) {
   try {
     payload = await response.json();
   } catch (error) {
-    throw new Error("Server returned an invalid AI reply.");
+    throw new Error("Server returned an invalid JSON response.");
   }
 
   if (!response.ok) {
-    throw new Error(payload.error || "Failed to get AI help.");
+    throw new Error(payload.error || "Request failed.");
   }
 
-  if (!payload.data) {
-    throw new Error("AI reply data is missing.");
+  return payload;
+}
+
+function getNetworkErrorMessage(path) {
+  if (path === "/api/recommend-project") {
+    return "Could not connect to the recommendation server.";
   }
 
-  return payload.data;
+  if (path === "/api/generate-plan") {
+    return "Could not connect to the plan generation server.";
+  }
+
+  if (path === "/api/step-intent") {
+    return "Could not connect to the AI help server.";
+  }
+
+  return "Could not connect to the server.";
 }
