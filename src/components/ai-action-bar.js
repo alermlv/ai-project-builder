@@ -1,0 +1,23 @@
+import { escapeHtml } from "../utils/formatters.js";
+
+export function renderAiActionBar({ value = "", isLoading = false }) {
+  return `
+    <div class="ai-action-bar">
+      <div class="ai-action-bar__content">
+        <textarea
+          id="aiStepInput"
+          class="ai-action-bar__textarea"
+          disabled
+          readonly
+        >${escapeHtml(value)}</textarea>
+
+        <button
+          id="askAiBtn"
+          ${isLoading ? "disabled" : ""}
+        >
+          ${isLoading ? "Asking..." : "Ask AI"}
+        </button>
+      </div>
+    </div>
+  `;
+}

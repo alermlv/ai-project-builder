@@ -1,11 +1,17 @@
 import { getState, commitState } from "../state.js";
 import { ROUTES } from "../utils/routes.js";
 import { escapeHtml, formatLabel } from "../utils/formatters.js";
-import { renderCodeBlock } from "../utils/code-block.js";
 import { renderAppHeader } from "../components/app-header.js";
 import { renderProgressSummary } from "../components/progress-summary.js";
 import { renderTaskCard } from "../components/task-card.js";
 import { renderSideMenu } from "../components/side-menu.js";
+import { renderAiReplyCard } from "../components/ai-reply-card.js";
+import { renderAiActionBar } from "../components/ai-action-bar.js";
+import { renderProjectContextCard } from "../components/project-context-card.js";
+import { renderStepExplanationCard } from "../components/step-explanation-card.js";
+import { renderStepVerificationCard } from "../components/step-verification-card.js";
+import { renderStepOutcomeCard } from "../components/step-outcome-card.js";
+import { renderCommitCard } from "../components/commit-card.js";
 import {
   completeTaskInProject,
   getCompletedTaskCount,
@@ -39,44 +45,7 @@ export function renderCurrentStep() {
   }
 
   if (project.status === "completed") {
-    return `
-      <div class="screen screen--with-fixed-header">
-        ${renderSideMenu({
-          projectTitle: project.title,
-          isOpen: ui.isMenuOpen,
-        })}
-
-        ${renderAppHeader({
-          title: project.title,
-          subtitle: "Project completed",
-          rightActionLabel: "Map",
-          rightActionRoute: ROUTES.PROJECT_MAP,
-        })}
-
-        <div class="screen-body screen-body--with-ai-bar">
-          <section class="card">
-            <p class="eyebrow">Done</p>
-            <h2>Project completed</h2>
-            <p>You completed all demo steps in this guided project.</p>
-          </section>
-
-          <section class="card">
-            <p><strong>Goal:</strong> ${escapeHtml(project.goal || "-")}</p>
-            <p><strong>Level:</strong> ${escapeHtml(formatLabel(project.level))}</p>
-            <p><strong>Scope:</strong> ${escapeHtml(formatLabel(project.scope))}</p>
-            <p><strong>Estimated size:</strong> ${escapeHtml(project.estimatedSize || "-")}</p>
-          </section>
-
-          <section class="card">
-            <p><strong>Summary:</strong> ${escapeHtml(project.summary || "-")}</p>
-          </section>
-
-          ${renderAiReply(ui.aiReply)}
-
-          <button data-nav="${ROUTES.PROJECT_MAP}">Open Project Map</button>
-        </div>
-      </div>
-    `;
+    return renderCompletedProjectScreen(project, ui);
   }
 
   const steps = Array.isArray(project.steps) ? project.steps : [];
@@ -111,10 +80,6 @@ export function renderCurrentStep() {
 
   const taskCardsHtml = (currentStep.tasks || [])
     .map((task, index) => renderTaskCard(task, index))
-    .join("");
-
-  const verificationHtml = (currentStep.verificationSteps || [])
-    .map((item) => `<li>${escapeHtml(item)}</li>`)
     .join("");
 
   const stackHtml = (project.stack || [])
@@ -157,19 +122,12 @@ export function renderCurrentStep() {
           currentStepSummary: currentStep.summary,
         })}
 
-        <section class="card">
-          <p class="eyebrow">Project context</p>
-          <p><strong>Goal:</strong> ${escapeHtml(project.goal || "-")}</p>
-          <p><strong>Level:</strong> ${escapeHtml(formatLabel(project.level))}</p>
-          <p><strong>Scope:</strong> ${escapeHtml(formatLabel(project.scope))}</p>
-          <p><strong>Estimated size:</strong> ${escapeHtml(project.estimatedSize || "-")}</p>
-        </section>
+        ${renderProjectContextCard(project)}
 
-        <section class="card explanation-card">
-          <p class="eyebrow">AI explanation</p>
-          <p><strong>Why this step matters:</strong> ${escapeHtml(currentStep.whyItMatters || "-")}</p>
-          <p>${escapeHtml(project.summary || "No project summary yet.")}</p>
-        </section>
+        ${renderStepExplanationCard({
+          currentStep,
+          project,
+        })}
 
         <section class="card">
           <p class="eyebrow">Suggested stack</p>
@@ -199,46 +157,54 @@ export function renderCurrentStep() {
           }
         </section>
 
-        <section class="card">
-          <p class="eyebrow">How to verify this step</p>
-          <ul class="bullet-list">
-            ${verificationHtml}
-          </ul>
-        </section>
+        ${renderStepVerificationCard(currentStep.verificationSteps || [])}
 
-        <section class="card">
-          <p class="eyebrow">Step outcome</p>
-          <p>${escapeHtml(currentStep.outcomeSummary || "-")}</p>
-        </section>
+        ${renderStepOutcomeCard(currentStep.outcomeSummary || "")}
 
-        <section class="card">
-          <p class="eyebrow">Recommended commit</p>
-          ${renderCodeBlock({
-            label: "Commit message",
-            language: "text",
-            code: currentStep.commitMessage || "",
-          })}
-        </section>
+        ${renderCommitCard(currentStep.commitMessage || "")}
 
-        ${renderAiReply(ui.aiReply)}
+        ${renderAiReplyCard(ui.aiReply)}
       </div>
 
-      <div class="ai-action-bar">
-        <div class="ai-action-bar__content">
-          <textarea
-            id="aiStepInput"
-            class="ai-action-bar__textarea"
-            disabled
-            readonly
-          >${escapeHtml(demoAiInput)}</textarea>
+      ${renderAiActionBar({
+        value: demoAiInput,
+        isLoading: ui.isLoading,
+      })}
+    </div>
+  `;
+}
 
-          <button
-            id="askAiBtn"
-            ${ui.isLoading ? "disabled" : ""}
-          >
-            ${ui.isLoading ? "Asking..." : "Ask AI"}
-          </button>
-        </div>
+function renderCompletedProjectScreen(project, ui) {
+  return `
+    <div class="screen screen--with-fixed-header">
+      ${renderSideMenu({
+        projectTitle: project.title,
+        isOpen: ui.isMenuOpen,
+      })}
+
+      ${renderAppHeader({
+        title: project.title,
+        subtitle: "Project completed",
+        rightActionLabel: "Map",
+        rightActionRoute: ROUTES.PROJECT_MAP,
+      })}
+
+      <div class="screen-body screen-body--with-ai-bar">
+        <section class="card">
+          <p class="eyebrow">Done</p>
+          <h2>Project completed</h2>
+          <p>You completed all demo steps in this guided project.</p>
+        </section>
+
+        ${renderProjectContextCard(project)}
+
+        <section class="card">
+          <p><strong>Summary:</strong> ${escapeHtml(project.summary || "-")}</p>
+        </section>
+
+        ${renderAiReplyCard(ui.aiReply)}
+
+        <button data-nav="${ROUTES.PROJECT_MAP}">Open Project Map</button>
       </div>
     </div>
   `;
@@ -250,78 +216,6 @@ function getDemoAiInput(currentTask) {
   }
 
   return DEMO_AI_INPUTS[currentTask.id] || "";
-}
-
-function renderAiReply(aiReply) {
-  if (!aiReply) {
-    return "";
-  }
-
-  if (aiReply.intent === "question") {
-    const explanationHtml = (aiReply.body?.explanation || [])
-      .map((item) => `<li>${escapeHtml(item)}</li>`)
-      .join("");
-
-    return `
-      <section class="card ai-reply-card">
-        <p class="eyebrow">AI reply</p>
-        <h2>${escapeHtml(aiReply.title || "Explanation")}</h2>
-        <p>${escapeHtml(aiReply.body?.summary || "-")}</p>
-
-        <ul class="bullet-list">
-          ${explanationHtml}
-        </ul>
-
-        ${
-          aiReply.body?.codeReference
-            ? renderCodeBlock({
-                label: aiReply.body.codeReference.label || "Relevant code",
-                language: aiReply.body.codeReference.language || "javascript",
-                code: aiReply.body.codeReference.code || "",
-              })
-            : ""
-        }
-      </section>
-    `;
-  }
-
-  if (aiReply.intent === "problem") {
-    return `
-      <section class="card ai-reply-card">
-        <p class="eyebrow">AI reply</p>
-        <h2>${escapeHtml(aiReply.title || "Fix")}</h2>
-        <p><strong>Why the error happened:</strong> ${escapeHtml(aiReply.body?.cause || "-")}</p>
-
-        ${
-          aiReply.body?.fixedCode
-            ? renderCodeBlock({
-                label: aiReply.body.fixedCode.label || "Correct code",
-                language: aiReply.body.fixedCode.language || "javascript",
-                code: aiReply.body.fixedCode.code || "",
-              })
-            : ""
-        }
-      </section>
-    `;
-  }
-
-  if (aiReply.intent === "system") {
-    return `
-      <section class="card ai-reply-card">
-        <p class="eyebrow">AI reply</p>
-        <h2>${escapeHtml(aiReply.title || "Notice")}</h2>
-        <p>${escapeHtml(aiReply.body?.summary || "No AI response available.")}</p>
-      </section>
-    `;
-  }
-
-  return `
-    <section class="card ai-reply-card">
-      <p class="eyebrow">AI reply</p>
-      <h2>Notice</h2>
-      <p>No AI response available.</p>
-    </section>
-  `;
 }
 
 document.addEventListener("click", async (e) => {
