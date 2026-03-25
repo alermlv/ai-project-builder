@@ -14,18 +14,16 @@ export function renderEntryGoal() {
       <div class="card">
         <p>This is a demo version of the app.</p>
         <p>Only the demo counter project is available right now.</p>
-        <p>In this demo, only step_5 and step_6 are active guided steps.</p>
+        <p>In this demo, only steps 5 and 6 are active.</p>
       </div>
 
-      <div class="card">
-        <p>Demo goal</p>
-        <input
-          id="goalInput"
-          value="${escapeHtml(DEMO_GOAL)}"
-          disabled
-          readonly
-        />
-      </div>
+      <input
+        id="goalInput"
+        class="u-hidden"
+        value="${escapeHtml(DEMO_GOAL)}"
+        disabled
+        readonly
+      />
 
       ${error ? `<p class="error-text">${error}</p>` : ""}
 
