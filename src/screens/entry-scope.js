@@ -37,7 +37,7 @@ export function renderEntryScope() {
       <h1>What project size do you want?</h1>
 
       <div class="card notice-card">
-          <p><strong>Note:</strong> The demo is currently locked to a small project.</p>
+        <p><strong>Note:</strong> The demo is currently locked to a small project. Press the Get recommendation button.</p>
       </div>
 
       <div class="option-list">

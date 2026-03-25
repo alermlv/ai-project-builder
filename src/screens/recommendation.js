@@ -38,7 +38,7 @@ export function renderRecommendation() {
       }
 
       <div class="card notice-card">
-        <p><strong>Note:</strong> The demo is currently locked to a simple counter project. </p>
+        <p><strong>Note:</strong> The demo is currently locked to a simple counter project. Press the Start button.</p>
       </div>
 
       <div class="card recommendation-hero">

@@ -96,7 +96,7 @@ export function renderCurrentStep() {
 
       <div class="screen-body screen-body--with-ai-bar">
         <section class="card notice-card">
-          <p><strong>Note:</strong> In this demo, only steps 5 and 6 are available.</p>
+          <p><strong>Note:</strong> In this demo, only steps 5 and 6 are available. Press the Complete task button.</p>
         </section>
 
         ${renderProgressSummary({
